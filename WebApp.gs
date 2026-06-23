@@ -1,6 +1,7 @@
 // ============================================================
 // ONBOARDING OPERATIONS PLATFORM
-// WebApp.gs — JSON API endpoint for the React dashboard
+// WebApp.gs — Serves the HTML dashboard; getDashboardData()
+//             is called client-side via google.script.run
 //
 // Deploy: Apps Script → Deploy → New deployment
 //   Type: Web app
@@ -9,16 +10,9 @@
 // ============================================================
 
 function doGet(e) {
-  try {
-    var data = getDashboardData();
-    return ContentService
-      .createTextOutput(JSON.stringify(data))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ error: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
+  return HtmlService.createHtmlOutputFromFile('Index')
+    .setTitle('Onboarding Operations Platform')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function getDashboardData() {
@@ -49,23 +43,21 @@ function getDashboardData() {
 
     // ── OB Cases (rows 8–27, cols A–W) ──────────────────────
     var obRows = sh.getRange(8, 1, 20, 23).getValues();
-    var obOpen = 0, obDone = 0, docsPend = 0, breaches = 0, withinTat = 0;
-    var tatSum = 0, tatCount = 0;
+    var totalCases = 0, completed = 0, inProgress = 0, docsPending = 0, tatBreaches = 0;
 
     obRows.forEach(function(row) {
-      if (!row[0]) return;                // A empty → skip
-      var vertical   = row[2];            // C
-      var tatDays    = row[19];           // T
-      var tatStatus  = row[20];           // U
-      var caseStatus = row[22];           // W
+      if (!row[0]) return;
+      var vertical   = row[2];   // C
+      var tatStatus  = row[20];  // U
+      var caseStatus = row[22];  // W
 
+      totalCases++;
       kpi.totalCases++;
-      if (caseStatus === 'In Progress')                     { obOpen++;   kpi.inProgress++;  }
-      if (caseStatus === 'Completed' || caseStatus === 'Rejected') { obDone++; kpi.completed++; }
-      if (tatStatus  === 'Pending Docs')                    { docsPend++; kpi.docsPending++; alerts.docs++;    }
-      if (tatStatus  === '⚠ Breach')                       { breaches++; kpi.tatBreaches++; alerts.breach++;  }
-      if (tatStatus  === '✓ Within TAT')                   { withinTat++; }
-      if (typeof tatDays === 'number' && tatDays > 0)       { tatSum += tatDays; tatCount++; }
+
+      if (caseStatus === 'Completed' || caseStatus === 'Rejected') { completed++;   kpi.completed++;   }
+      if (caseStatus === 'In Progress' || caseStatus === 'Docs Pending' || caseStatus === 'Not Started') { inProgress++; kpi.inProgress++; }
+      if (tatStatus  === 'Pending Docs')  { docsPending++; kpi.docsPending++; alerts.docs++;   }
+      if (tatStatus  === '⚠ Breach')     { tatBreaches++; kpi.tatBreaches++; alerts.breach++; }
 
       if (pipeline[vertical]) {
         pipeline[vertical].total++;
@@ -76,32 +68,37 @@ function getDashboardData() {
     });
 
     // ── Monitoring status col (J = col 10), rows 32–46 ──────
+    var monitoringOpen = 0;
     sh.getRange(32, 10, 15, 1).getValues().forEach(function(row) {
-      var s = row[0];
-      if (s === 'Open' || s === 'In Progress' || s === 'Started') alerts.monitoringOpen++;
+      if (row[0] === 'Open' || row[0] === 'In Progress' || row[0] === 'Started') {
+        monitoringOpen++;
+        alerts.monitoringOpen++;
+      }
     });
 
-    // ── Third Party status col (J = col 10), rows 51–65 ─────
+    // ── Third Party status col (J = col 10), rows 51–65 ────
+    var thirdPartyOpen = 0;
     sh.getRange(51, 10, 15, 1).getValues().forEach(function(row) {
-      if (row[0] === 'Open') alerts.tpOpen++;
+      if (row[0] === 'Open') { thirdPartyOpen++; alerts.tpOpen++; }
     });
 
-    // ── Other Tasks status col (G = col 7), rows 70–89 ──────
+    // ── Other Tasks status col (G = col 7), rows 70–89 ─────
+    var otherTasks = 0;
     sh.getRange(70, 7, 20, 1).getValues().forEach(function(row) {
+      if (row[0] && row[0] !== '') otherTasks++;
       if (row[0] === 'Overdue') alerts.overdue++;
     });
 
     memberStats.push({
-      name:        name,
-      obOpen:      obOpen,
-      obDone:      obDone,
-      docsPending: docsPend,
-      tatBreaches: breaches,
-      withinTat:   withinTat,
-      avgTat:      tatCount > 0 ? Math.round((tatSum / tatCount) * 10) / 10 : null,
-      pctWithinTat:(withinTat + breaches) > 0
-                     ? Math.round(withinTat / (withinTat + breaches) * 100)
-                     : null
+      name:           name,
+      totalCases:     totalCases,
+      completed:      completed,
+      inProgress:     inProgress,
+      docsPending:    docsPending,
+      tatBreaches:    tatBreaches,
+      monitoringOpen: monitoringOpen,
+      thirdPartyOpen: thirdPartyOpen,
+      otherTasks:     otherTasks
     });
   });
 
