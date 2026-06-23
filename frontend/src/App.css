@@ -1,0 +1,149 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #f0f2f5;
+  color: #212121;
+  min-height: 100vh;
+}
+
+/* ── Layout ───────────────────────────────────── */
+.app-header {
+  background: #1a237e;
+  color: #fff;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.app-header h1 { font-size: 15px; font-weight: 700; letter-spacing: .3px; }
+.header-meta   { font-size: 11px; opacity: .75; display: flex; gap: 16px; align-items: center; }
+.refresh-btn {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.3);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.refresh-btn:hover  { background: rgba(255,255,255,.25); }
+.refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.page { max-width: 1300px; margin: 0 auto; padding: 24px 20px 40px; }
+
+/* ── States ───────────────────────────────────── */
+.state-center {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 60vh; gap: 12px;
+  color: #546e7a; font-size: 14px;
+}
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #1a237e;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.error-box {
+  background: #ffebee; color: #b71c1c;
+  border: 1px solid #ef9a9a;
+  border-radius: 8px; padding: 16px 20px; font-size: 13px;
+}
+
+/* ── Section ──────────────────────────────────── */
+.section { margin-bottom: 28px; }
+.section-title {
+  background: #37474f; color: #fff;
+  padding: 8px 14px; font-size: 12px; font-weight: 700;
+  border-radius: 6px 6px 0 0; letter-spacing: .5px;
+}
+
+/* ── KPI Cards ────────────────────────────────── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+.kpi-card {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 18px 8px 14px;
+  border-right: 1px solid rgba(255,255,255,.15);
+}
+.kpi-card:last-child { border-right: none; }
+.kpi-label { font-size: 10px; font-weight: 600; text-align: center; opacity: .85; line-height: 1.4; }
+.kpi-value { font-size: 32px; font-weight: 700; line-height: 1.1; margin-top: 6px; }
+
+/* ── Table shared ─────────────────────────────── */
+.table-wrap {
+  background: #fff;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th {
+  background: #eceff1; color: #212121;
+  padding: 8px 12px; text-align: center;
+  font-weight: 700; font-size: 11px;
+  border-bottom: 2px solid #b0bec5;
+  white-space: nowrap;
+}
+th:first-child { text-align: left; }
+td {
+  padding: 8px 12px; text-align: center;
+  border-bottom: 1px solid #eceff1;
+  color: #424242;
+}
+td:first-child { text-align: left; font-weight: 600; color: #1a237e; }
+tr:last-child td { border-bottom: none; }
+tr.total-row td {
+  background: #1a237e; color: #fff;
+  font-weight: 700;
+}
+tr.total-row td:first-child { color: #fff; }
+tr:not(.total-row):hover td { background: #f5f5f5; }
+
+/* ── Alerts ───────────────────────────────────── */
+.alerts-grid { display: flex; flex-direction: column; gap: 0; border-radius: 0 0 8px 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.alert-row {
+  display: flex; align-items: center;
+  padding: 10px 16px; gap: 14px;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  font-size: 12px; font-weight: 600;
+}
+.alert-row:last-child { border-bottom: none; }
+.alert-count {
+  font-size: 22px; font-weight: 700;
+  min-width: 44px; text-align: center;
+}
+.alert-icon { font-size: 18px; }
+
+/* ── Responsive ───────────────────────────────── */
+@media (max-width: 900px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .kpi-card { border-right: 1px solid rgba(255,255,255,.15); }
+}
+@media (max-width: 600px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  table { font-size: 11px; }
+  th, td { padding: 6px 8px; }
+}
+
+/* ── Footer ───────────────────────────────────── */
+.footer {
+  text-align: center; font-size: 11px; color: #90a4ae;
+  margin-top: 32px; padding-top: 16px;
+  border-top: 1px solid #e0e0e0;
+}
