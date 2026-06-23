@@ -177,7 +177,7 @@ function setupSettings(ss) {
   rule.setBackground(CLR.GRAY_LIGHT)
       .setFontColor(CLR.GRAY_DARK)
       .setFontSize(9)
-      .setItalic(true)
+      .setFontStyle('italic')
       .setWrapStrategy(SpreadsheetApp.WrapStrategy.WRAP);
   sh.setRowHeight(40, 36);
 
