@@ -33,7 +33,8 @@ function runSetupPlatform() {
     '• Control Tower — live KPI dashboard\n' +
     '• Settings — team, verticals, stage weights\n' +
     '• Harshita / Vamsi / Naveen / Vishwash — individual trackers\n\n' +
-    'All TAT, progress %, and status columns are auto-calculated.'
+    'All TAT, progress %, and status columns are auto-calculated.',
+    ui.ButtonSet.OK
   );
 }
 
@@ -54,7 +55,8 @@ function showAbout() {
     '• Alerts for breaches, pending docs, open tasks\n' +
     '• Monitoring, Third Party & Other Tasks tracking\n\n' +
     'TAT rule: TAT starts only when Doc % Collected = 100%.\n' +
-    'If docs are incomplete, TAT is paused.'
+    'If docs are incomplete, TAT is paused.',
+    SpreadsheetApp.getUi().ButtonSet.OK
   );
 }
 
