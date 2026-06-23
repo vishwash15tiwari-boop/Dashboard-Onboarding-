@@ -1,0 +1,1 @@
+{\n  "timeZone": "Asia/Kolkata",\n  "dependencies": {},\n  "exceptionLogging": "STACKDRIVER",\n  "runtimeVersion": "V8",\n  "oauthScopes": [\n    "https://www.googleapis.com/auth/spreadsheets"\n  ]\n}\n
