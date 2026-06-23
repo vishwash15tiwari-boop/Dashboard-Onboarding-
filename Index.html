@@ -4,206 +4,861 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Onboarding Operations Platform</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #212121; min-height: 100vh; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #f0f2f5; color: #212121; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-    .app-header { background: #1a237e; color: #fff; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 8px rgba(0,0,0,.25); }
-    .app-header h1 { font-size: 15px; font-weight: 700; letter-spacing: .3px; }
-    .header-meta { font-size: 11px; opacity: .75; display: flex; gap: 16px; align-items: center; }
-    .refresh-btn { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: #fff; padding: 4px 12px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: background .15s; }
+    /* Header */
+    .app-header { background: #1a237e; color: #fff; padding: 0 20px; display: flex; align-items: center; justify-content: space-between; height: 52px; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,.3); z-index: 50; }
+    .app-header h1 { font-size: 13px; font-weight: 700; letter-spacing: .3px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    #updated-time { font-size: 10px; opacity: .7; }
+    .refresh-btn { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3); color: #fff; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
     .refresh-btn:hover { background: rgba(255,255,255,.25); }
     .refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
 
-    .page { max-width: 1300px; margin: 0 auto; padding: 24px 20px 40px; }
+    /* Layout */
+    .body-layout { display: flex; flex: 1; overflow: hidden; }
+    .main { flex: 1; overflow-y: auto; padding: 20px; }
 
-    .state-center { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 12px; color: #546e7a; font-size: 14px; }
-    .spinner { width: 36px; height: 36px; border: 3px solid #e0e0e0; border-top-color: #1a237e; border-radius: 50%; animation: spin .7s linear infinite; }
+    /* Sidebar */
+    .sidebar { width: 210px; background: #0d1b6b; flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto; }
+    .sidebar-user { padding: 12px 12px 8px; border-bottom: 1px solid rgba(255,255,255,.1); }
+    .sidebar-user label { font-size: 9px; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .5px; display: block; margin-bottom: 4px; }
+    .sidebar-user select { width: 100%; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: #fff; padding: 5px 8px; border-radius: 4px; font-size: 11px; font-family: inherit; cursor: pointer; }
+    .sidebar-user select option { background: #1a237e; }
+    .nav-sec { padding: 10px 12px 3px; font-size: 9px; color: rgba(255,255,255,.35); text-transform: uppercase; letter-spacing: .7px; }
+    .nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 14px; font-size: 12px; color: rgba(255,255,255,.72); cursor: pointer; border-left: 3px solid transparent; transition: background .12s; }
+    .nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+    .nav-item.active { background: rgba(255,255,255,.12); color: #fff; border-left-color: #82b1ff; font-weight: 600; }
+    .nav-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+    .sidebar-foot { padding: 10px 12px; font-size: 9px; color: rgba(255,255,255,.28); border-top: 1px solid rgba(255,255,255,.08); margin-top: auto; }
+
+    /* States */
+    .state-center { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; gap: 10px; color: #546e7a; font-size: 13px; }
+    .spinner { width: 32px; height: 32px; border: 3px solid #e0e0e0; border-top-color: #1a237e; border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .error-box { background: #ffebee; color: #b71c1c; border: 1px solid #ef9a9a; border-radius: 8px; padding: 16px 20px; font-size: 13px; }
+    .error-box { background: #ffebee; color: #b71c1c; border: 1px solid #ef9a9a; border-radius: 8px; padding: 12px 16px; font-size: 12px; margin-bottom: 14px; }
 
-    .section { margin-bottom: 28px; }
-    .section-title { background: #37474f; color: #fff; padding: 8px 14px; font-size: 12px; font-weight: 700; border-radius: 6px 6px 0 0; letter-spacing: .5px; }
+    /* Sections */
+    .section { margin-bottom: 20px; }
+    .section-title { background: #37474f; color: #fff; padding: 7px 14px; font-size: 11px; font-weight: 700; border-radius: 6px 6px 0 0; letter-spacing: .4px; display: flex; align-items: center; justify-content: space-between; }
+    .st-right { font-size: 10px; font-weight: 400; opacity: .8; display: flex; gap: 8px; align-items: center; }
+    .btn-add { background: #82b1ff; color: #1a237e; border: none; padding: 3px 10px; border-radius: 3px; font-size: 10px; font-weight: 700; cursor: pointer; }
+    .btn-add:hover { background: #b3cfff; }
 
-    .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; border-radius: 0 0 8px 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
-    .kpi-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 18px 8px 14px; border-right: 1px solid rgba(255,255,255,.15); }
+    /* KPI grid */
+    .kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); border-radius: 0 0 8px 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .kpi-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 14px 8px 12px; border-right: 1px solid rgba(255,255,255,.15); }
     .kpi-card:last-child { border-right: none; }
-    .kpi-label { font-size: 10px; font-weight: 600; text-align: center; opacity: .85; line-height: 1.4; }
-    .kpi-value { font-size: 32px; font-weight: 700; line-height: 1.1; margin-top: 6px; }
+    .kpi-label { font-size: 9px; font-weight: 600; text-align: center; opacity: .85; text-transform: uppercase; letter-spacing: .3px; line-height: 1.4; }
+    .kpi-value { font-size: 28px; font-weight: 700; line-height: 1.1; margin-top: 4px; }
 
-    .table-wrap { background: #fff; border-radius: 0 0 8px 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    th { background: #eceff1; color: #212121; padding: 8px 12px; text-align: center; font-weight: 700; font-size: 11px; border-bottom: 2px solid #b0bec5; white-space: nowrap; }
+    /* Summary cards */
+    .sum-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .sum-card { background: #fff; border-radius: 8px; padding: 12px 16px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .sum-val { font-size: 24px; font-weight: 700; }
+    .sum-lbl { font-size: 10px; color: #546e7a; font-weight: 500; text-transform: uppercase; letter-spacing: .3px; margin-top: 2px; }
+
+    /* Tables */
+    .table-wrap { background: #fff; border-radius: 0 0 8px 8px; overflow-x: auto; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    th { background: #eceff1; color: #37474f; padding: 7px 10px; text-align: center; font-weight: 700; font-size: 10px; border-bottom: 2px solid #b0bec5; white-space: nowrap; text-transform: uppercase; letter-spacing: .3px; }
     th:first-child { text-align: left; }
-    td { padding: 8px 12px; text-align: center; border-bottom: 1px solid #eceff1; color: #424242; }
+    td { padding: 7px 10px; text-align: center; border-bottom: 1px solid #f5f5f5; color: #424242; white-space: nowrap; }
     td:first-child { text-align: left; font-weight: 600; color: #1a237e; }
     tr:last-child td { border-bottom: none; }
     tr.total-row td { background: #1a237e; color: #fff; font-weight: 700; }
     tr.total-row td:first-child { color: #fff; }
-    tr:not(.total-row):hover td { background: #f5f5f5; }
+    tr.click-row { cursor: pointer; }
+    tr.click-row:hover td { background: #e8eaf6; }
+    tr:not(.total-row):not(.click-row):hover td { background: #fafafa; }
+    .td-act { white-space: nowrap; }
+    .btn-edit { background: none; border: 1px solid #b0bec5; color: #546e7a; padding: 2px 8px; border-radius: 3px; font-size: 10px; cursor: pointer; }
+    .btn-edit:hover { border-color: #1a237e; color: #1a237e; }
 
-    .alerts-grid { display: flex; flex-direction: column; gap: 0; border-radius: 0 0 8px 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
-    .alert-row { display: flex; align-items: center; padding: 10px 16px; gap: 14px; border-bottom: 1px solid rgba(0,0,0,.06); font-size: 12px; font-weight: 600; }
+    /* Filters */
+    .filters { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+    .filter-lbl { font-size: 10px; color: #546e7a; font-weight: 600; }
+    .filter-sel { background: #fff; border: 1px solid #cfd8dc; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-family: inherit; color: #212121; cursor: pointer; }
+
+    /* Badges */
+    .badge { display: inline-block; padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .b-green  { background: #e8f5e9; color: #1b5e20; }
+    .b-red    { background: #ffebee; color: #b71c1c; }
+    .b-orange { background: #fff3e0; color: #e65100; }
+    .b-blue   { background: #e3f2fd; color: #0277bd; }
+    .b-gray   { background: #eceff1; color: #546e7a; }
+    .b-purple { background: #f3e5f5; color: #4a148c; }
+
+    /* Progress bar */
+    .prog-wrap { background: #e0e0e0; border-radius: 8px; height: 6px; width: 64px; display: inline-block; vertical-align: middle; }
+    .prog-fill { height: 100%; border-radius: 8px; background: #1a237e; }
+
+    /* Case 360 */
+    .back-link { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-size: 12px; color: #1a237e; font-weight: 600; margin-bottom: 14px; }
+    .back-link:hover { text-decoration: underline; }
+    .case-hero { background: #fff; border-radius: 8px; padding: 16px 20px; box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 14px; }
+    .case-title { font-size: 16px; font-weight: 700; color: #1a237e; }
+    .case-sub { font-size: 11px; color: #546e7a; margin-top: 3px; }
+    .case-chips { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+    .case-tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 14px; }
+    .case-tab { padding: 8px 18px; font-size: 12px; font-weight: 600; cursor: pointer; color: #546e7a; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+    .case-tab.active { color: #1a237e; border-bottom-color: #1a237e; }
+    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .detail-cell { background: #fff; border-radius: 6px; padding: 10px 14px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+    .dc-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: .4px; color: #546e7a; font-weight: 600; }
+    .dc-val { font-size: 13px; font-weight: 600; color: #212121; margin-top: 3px; }
+    .workflow-step { display: flex; align-items: center; gap: 12px; background: #fff; border-radius: 6px; padding: 10px 16px; box-shadow: 0 1px 3px rgba(0,0,0,.06); margin-bottom: 8px; }
+    .ws-label { flex: 1; font-size: 12px; font-weight: 600; }
+    .ws-date { font-size: 11px; color: #546e7a; }
+
+    /* Alerts */
+    .alerts-grid { background: #fff; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .alert-row { display: flex; align-items: center; padding: 10px 16px; gap: 12px; border-bottom: 1px solid rgba(0,0,0,.04); font-size: 12px; font-weight: 600; }
     .alert-row:last-child { border-bottom: none; }
-    .alert-count { font-size: 22px; font-weight: 700; min-width: 44px; text-align: center; }
-    .alert-icon { font-size: 18px; }
+    .alert-count { font-size: 20px; font-weight: 700; min-width: 40px; text-align: center; }
 
-    .footer { text-align: center; font-size: 11px; color: #90a4ae; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e0e0e0; }
+    /* Performance */
+    .perf-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .perf-card { background: #fff; border-radius: 8px; padding: 14px 16px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .perf-val { font-size: 22px; font-weight: 700; color: #1a237e; }
+    .perf-lbl { font-size: 10px; color: #546e7a; text-transform: uppercase; letter-spacing: .3px; margin-top: 2px; }
 
-    @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 600px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } table { font-size: 11px; } th, td { padding: 6px 8px; } }
+    /* Settings */
+    .set-card { background: #fff; border-radius: 8px; padding: 14px 18px; box-shadow: 0 1px 4px rgba(0,0,0,.08); margin-bottom: 14px; }
+    .set-card h3 { font-size: 11px; font-weight: 700; color: #1a237e; margin-bottom: 10px; text-transform: uppercase; letter-spacing: .4px; }
+    .set-row { display: flex; gap: 10px; padding: 5px 0; border-bottom: 1px solid #f5f5f5; font-size: 11px; }
+    .set-row:last-child { border-bottom: none; }
+    .set-key { font-weight: 600; width: 200px; flex-shrink: 0; color: #546e7a; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal-box { background: #fff; border-radius: 8px; padding: 20px; width: min(640px, 96vw); max-height: 90vh; overflow-y: auto; }
+    .modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-head h3 { font-size: 13px; font-weight: 700; color: #1a237e; }
+    .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #546e7a; line-height: 1; }
+    .modal-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; padding-top: 12px; border-top: 1px solid #e0e0e0; }
+    .btn-cancel { padding: 7px 16px; border: 1px solid #cfd8dc; border-radius: 4px; background: #fff; cursor: pointer; font-size: 11px; font-family: inherit; }
+    .btn-save { padding: 7px 16px; border: none; border-radius: 4px; background: #1a237e; color: #fff; cursor: pointer; font-size: 11px; font-weight: 600; font-family: inherit; }
+    .btn-save:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* Form */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+    .form-grid .span2 { grid-column: span 2; }
+    .form-row { display: flex; flex-direction: column; gap: 3px; }
+    .form-label { font-size: 10px; font-weight: 600; color: #546e7a; text-transform: uppercase; letter-spacing: .3px; }
+    .form-inp { width: 100%; border: 1px solid #cfd8dc; border-radius: 4px; padding: 6px 8px; font-size: 12px; font-family: inherit; color: #212121; background: #fff; }
+    .form-inp:focus { outline: none; border-color: #1a237e; box-shadow: 0 0 0 2px rgba(26,35,126,.15); }
+    textarea.form-inp { resize: vertical; }
+    .owner-badge { background: #e8eaf6; color: #1a237e; padding: 6px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+
+    .footer { text-align: center; font-size: 10px; color: #90a4ae; padding: 16px 0 4px; }
+
+    @media (max-width: 900px) {
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+      .sum-cards, .perf-grid { grid-template-columns: repeat(2, 1fr); }
+      .detail-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .sidebar { display: none; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid .span2 { grid-column: span 1; }
+    }
   </style>
 </head>
 <body>
-  <header class="app-header">
-    <h1>ONBOARDING OPERATIONS PLATFORM &mdash; CONTROL TOWER</h1>
-    <div class="header-meta">
-      <span id="updated-time"></span>
-      <button class="refresh-btn" id="refresh-btn" onclick="loadData()">&#8635; Refresh</button>
+
+<header class="app-header">
+  <h1>&#9881; ONBOARDING OPERATIONS PLATFORM</h1>
+  <div class="header-right">
+    <span id="updated-time"></span>
+    <button class="refresh-btn" id="refresh-btn" onclick="onRefresh()">&#8635; Refresh</button>
+  </div>
+</header>
+
+<div class="body-layout">
+  <nav class="sidebar">
+    <div class="sidebar-user">
+      <label>Viewing as</label>
+      <select id="user-sel" onchange="onUserChange()">
+        <option value="__manager__">Ajay (Manager)</option>
+        <option value="Harshita">Harshita</option>
+        <option value="Vamsi">Vamsi</option>
+        <option value="Naveen">Naveen</option>
+        <option value="Vishwash">Vishwash</option>
+      </select>
     </div>
-  </header>
+    <div class="nav-sec">Overview</div>
+    <div class="nav-item active" data-v="dashboard"   onclick="navigate('dashboard')">  <span class="nav-icon">&#128202;</span> Control Tower</div>
+    <div class="nav-item"        data-v="workspace"   onclick="navigate('workspace')">  <span class="nav-icon">&#128101;</span> My Workspace</div>
+    <div class="nav-sec">Operations</div>
+    <div class="nav-item"        data-v="cases"       onclick="navigate('cases')">      <span class="nav-icon">&#128203;</span> OB Cases</div>
+    <div class="nav-item"        data-v="monitoring"  onclick="navigate('monitoring')"> <span class="nav-icon">&#128065;</span> Monitoring</div>
+    <div class="nav-item"        data-v="thirdparty"  onclick="navigate('thirdparty')"> <span class="nav-icon">&#129309;</span> Third Party</div>
+    <div class="nav-item"        data-v="projects"    onclick="navigate('projects')">   <span class="nav-icon">&#128196;</span> Projects</div>
+    <div class="nav-sec">Insights</div>
+    <div class="nav-item"        data-v="performance" onclick="navigate('performance')"><span class="nav-icon">&#128200;</span> Performance</div>
+    <div class="nav-sec">Admin</div>
+    <div class="nav-item"        data-v="settings"    onclick="navigate('settings')">   <span class="nav-icon">&#9881;</span> Settings</div>
+    <div class="sidebar-foot">Auto-refresh: 60 s</div>
+  </nav>
 
-  <main class="page">
-    <div class="state-center" id="loading-state">
-      <div class="spinner"></div>
-      <span>Loading dashboard data&hellip;</span>
+  <main class="main" id="main"></main>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="modal-title"></h3>
+      <button class="modal-close" onclick="closeModal()">&#215;</button>
     </div>
-    <div class="error-box" id="error-state" style="display:none;"></div>
-    <div id="dashboard" style="display:none;"></div>
-  </main>
+    <div id="modal-body"></div>
+    <div class="modal-foot">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save"   id="modal-save" onclick="runSave()">Save</button>
+    </div>
+  </div>
+</div>
 
-  <script>
-    var refreshTimer = null;
+<script>
+// ── Constants ─────────────────────────────────────────────
+var MEMBERS   = ['Harshita','Vamsi','Naveen','Vishwash'];
+var VERTICALS = ['Marketplace','Open Marketplace','EPR & Sustainability'];
+var YN        = ['','Y','N'];
 
-    function loadData() {
-      var btn = document.getElementById('refresh-btn');
-      btn.disabled = true;
-      btn.textContent = 'Loading…';
-      google.script.run
-        .withSuccessHandler(function(data) {
-          btn.disabled = false;
-          btn.textContent = '↻ Refresh';
-          render(data);
-          clearTimeout(refreshTimer);
-          refreshTimer = setTimeout(loadData, 60000);
-        })
-        .withFailureHandler(function(err) {
-          btn.disabled = false;
-          btn.textContent = '↻ Refresh';
-          showError(err.message || String(err));
-        })
-        .getDashboardData();
-    }
+// ── State ─────────────────────────────────────────────────
+var state = {
+  view:   'dashboard',
+  user:   '__manager__',
+  c360:   null,
+  tab360: 'overview',
+  filters: {
+    cases:      {owner:'',vertical:'',status:''},
+    monitoring: {owner:'',status:''},
+    thirdparty: {owner:'',status:''},
+    projects:   {owner:'',status:''}
+  },
+  data: {}
+};
+var pendingSave = null;
+var autoTimer   = null;
 
-    function showError(msg) {
-      document.getElementById('loading-state').style.display = 'none';
-      document.getElementById('error-state').style.display = 'block';
-      document.getElementById('error-state').textContent = '⚠ Could not load data: ' + msg;
-      document.getElementById('dashboard').style.display = 'none';
-    }
+// ── Utilities ─────────────────────────────────────────────
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmt(v) { return (v!==undefined&&v!==null&&v!=='') ? v : '—'; }
+function pct(v) { return typeof v==='number' ? Math.round(v*100)+'%' : (v||'—'); }
+function gv(id) { var e=document.getElementById(id); return e ? e.value.trim() : ''; }
 
-    function fmt(v) { return v !== undefined && v !== null ? v : '—'; }
+function badge(v) {
+  var s = String(v||'');
+  if (!s||s==='—') return '<span class="badge b-gray">—</span>';
+  if (s==='Completed')    return '<span class="badge b-green">'+esc(s)+'</span>';
+  if (s==='Rejected')     return '<span class="badge b-gray">'+esc(s)+'</span>';
+  if (s==='In Progress')  return '<span class="badge b-blue">'+esc(s)+'</span>';
+  if (s==='Docs Pending'||s==='Pending Docs') return '<span class="badge b-orange">'+esc(s)+'</span>';
+  if (s==='Not Started')  return '<span class="badge b-gray">'+esc(s)+'</span>';
+  if (s==='Open')         return '<span class="badge b-orange">'+esc(s)+'</span>';
+  if (s==='Done'||s==='Closed') return '<span class="badge b-green">'+esc(s)+'</span>';
+  if (s==='Overdue')      return '<span class="badge b-red">'+esc(s)+'</span>';
+  if (s==='Started')      return '<span class="badge b-blue">'+esc(s)+'</span>';
+  if (s==='⚠ Breach')    return '<span class="badge b-red">'+esc(s)+'</span>';
+  if (s==='On Track')     return '<span class="badge b-green">'+esc(s)+'</span>';
+  if (s==='Report Received'||s==='Bill Received') return '<span class="badge b-purple">'+esc(s)+'</span>';
+  return '<span class="badge b-gray">'+esc(s)+'</span>';
+}
 
-    function formatTime(iso) {
-      if (!iso) return '';
-      return new Date(iso).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-    }
+function progBar(v) {
+  var p = typeof v==='number' ? Math.min(100,Math.round(v*100)) : 0;
+  return '<div class="prog-wrap"><div class="prog-fill" style="width:'+p+'%"></div></div><span style="font-size:10px;margin-left:4px;">'+p+'%</span>';
+}
 
-    function render(data) {
-      document.getElementById('loading-state').style.display = 'none';
-      document.getElementById('error-state').style.display = 'none';
-      var upd = document.getElementById('updated-time');
-      upd.textContent = data.refreshedAt ? 'Updated ' + formatTime(data.refreshedAt) : '';
-      var dash = document.getElementById('dashboard');
-      dash.style.display = 'block';
-      dash.innerHTML =
-        renderKPI(data.kpi) +
-        renderTeam(data.members) +
-        renderPipeline(data.pipeline) +
-        renderAlerts(data.alerts) +
-        '<div class="footer">Live view &bull; Auto-refreshes every 60 s &bull; Manager: Ajay &bull; Team: Harshita &middot; Vamsi &middot; Naveen &middot; Vishwash</div>';
-    }
+var MONTHS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+function toInputDate(s) {
+  if (!s||s==='—') return '';
+  var m = String(s).match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})$/);
+  if (!m) return '';
+  var mo = MONTHS[m[2]]; if (mo===undefined) return '';
+  return m[3]+'-'+('0'+(mo+1)).slice(-2)+'-'+('0'+m[1]).slice(-2);
+}
 
-    function renderKPI(kpi) {
-      if (!kpi) return '';
-      var cards = [
-        { label: 'TOTAL OB CASES',   value: kpi.totalCases,  bg: '#1a237e', fg: '#fff' },
-        { label: 'OB COMPLETED',      value: kpi.completed,   bg: '#1b5e20', fg: '#fff' },
-        { label: 'OB IN PROGRESS',    value: kpi.inProgress,  bg: '#0277bd', fg: '#fff' },
-        { label: 'DOCS INCOMPLETE',   value: kpi.docsPending, bg: '#e65100', fg: '#fff' },
-        { label: 'TAT BREACHES',      value: kpi.tatBreaches, bg: '#b71c1c', fg: '#fff' },
-        { label: 'TAT TARGET (days)', value: kpi.tatTarget,   bg: '#37474f', fg: '#fff' }
-      ];
-      var html = '<div class="section"><div class="section-title">&#128202; LIVE KPIs</div><div class="kpi-grid">';
-      cards.forEach(function(c) {
-        html += '<div class="kpi-card" style="background:' + c.bg + ';color:' + c.fg + '">' +
-          '<div class="kpi-label">' + c.label + '</div>' +
-          '<div class="kpi-value">' + fmt(c.value) + '</div></div>';
+function setMain(html) { document.getElementById('main').innerHTML = html; }
+function setUpdated() { document.getElementById('updated-time').textContent = 'Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}); }
+
+// ── Navigation ────────────────────────────────────────────
+function navigate(viewId) {
+  state.view = viewId;
+  document.querySelectorAll('.nav-item').forEach(function(el) {
+    var v = el.dataset.v;
+    el.classList.toggle('active', v===viewId||(viewId==='case360'&&v==='cases'));
+  });
+  clearTimeout(autoTimer);
+  loadView(viewId);
+}
+
+function onUserChange() {
+  state.user = document.getElementById('user-sel').value;
+  state.data = {};
+  loadView(state.view);
+}
+
+function onRefresh() { state.data = {}; loadView(state.view); }
+
+function goWorkspace(name) {
+  document.getElementById('user-sel').value = name;
+  state.user = name;
+  state.data = {};
+  navigate('workspace');
+}
+
+// ── Data loading ──────────────────────────────────────────
+function cKey(v) {
+  if (v==='workspace') return 'ws_'+state.user;
+  if (v==='case360')   return 'c360_'+(state.c360?state.c360.owner+'_'+state.c360.row:'x');
+  return v;
+}
+
+function loadView(viewId) {
+  var btn = document.getElementById('refresh-btn');
+  btn.disabled=true; btn.textContent='Loading…';
+  var k = cKey(viewId);
+  if (state.data[k]) {
+    btn.disabled=false; btn.textContent='↻ Refresh';
+    renderView(viewId,state.data[k]); return;
+  }
+  setMain('<div class="state-center"><div class="spinner"></div><span>Loading&hellip;</span></div>');
+  function ok(d) {
+    btn.disabled=false; btn.textContent='↻ Refresh';
+    state.data[k]=d; setUpdated(); renderView(viewId,d);
+    clearTimeout(autoTimer);
+    autoTimer=setTimeout(function(){state.data[k]=null;if(state.view===viewId)loadView(viewId);},60000);
+  }
+  function fail(e) {
+    btn.disabled=false; btn.textContent='↻ Refresh';
+    setMain('<div class="error-box">&#9888; '+esc(e.message||String(e))+'</div>');
+  }
+  var r = google.script.run.withSuccessHandler(ok).withFailureHandler(fail);
+  if      (viewId==='dashboard')   r.getDashboardData();
+  else if (viewId==='workspace')   r.getWorkspaceData(state.user==='__manager__'?'Harshita':state.user);
+  else if (viewId==='cases')       r.getCasesListData();
+  else if (viewId==='case360')     r.getCase360Data(state.c360.owner,state.c360.row);
+  else if (viewId==='monitoring')  r.getMonitoringListData();
+  else if (viewId==='thirdparty')  r.getThirdPartyListData();
+  else if (viewId==='projects')    r.getProjectsData();
+  else if (viewId==='performance') r.getPerformanceData();
+  else if (viewId==='settings')    r.getSettingsData();
+}
+
+function renderView(v,d) {
+  if      (v==='dashboard')   renderDashboard(d);
+  else if (v==='workspace')   renderWorkspace(d);
+  else if (v==='cases')       renderCases(d);
+  else if (v==='case360')     renderCase360(d);
+  else if (v==='monitoring')  renderMonitoring(d);
+  else if (v==='thirdparty')  renderThirdParty(d);
+  else if (v==='projects')    renderProjects(d);
+  else if (v==='performance') renderPerformance(d);
+  else if (v==='settings')    renderSettings(d);
+}
+
+// ── Filter helpers ────────────────────────────────────────
+function mkFsel(opts,cur,ph,onChange) {
+  var h='<select class="filter-sel" onchange="'+onChange+'">';
+  h+='<option value="">'+esc(ph)+': All</option>';
+  opts.forEach(function(o){if(o)h+='<option value="'+esc(o)+'"'+(o===cur?' selected':'')+'>'+esc(o)+'</option>';});
+  return h+'</select>';
+}
+function uniq(arr) {
+  var seen={},out=[];
+  arr.forEach(function(v){if(v&&!seen[v]){seen[v]=true;out.push(v);}});
+  return out.sort();
+}
+function applyFilter(view,key,val) {
+  state.filters[view][key]=val;
+  var d=state.data[cKey(view)];
+  if(d) renderView(view,d);
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────
+function renderDashboard(data) {
+  var kpi=data.kpi||{};
+  var cards=[
+    {l:'TOTAL OB CASES',  v:kpi.totalCases, bg:'#1a237e'},
+    {l:'COMPLETED',        v:kpi.completed,  bg:'#1b5e20'},
+    {l:'IN PROGRESS',      v:kpi.inProgress, bg:'#0277bd'},
+    {l:'DOCS INCOMPLETE',  v:kpi.docsPending,bg:'#e65100'},
+    {l:'TAT BREACHES',     v:kpi.tatBreaches,bg:'#b71c1c'},
+    {l:'TAT TARGET (days)',v:kpi.tatTarget,  bg:'#37474f'}
+  ];
+  var kpiH='<div class="kpi-grid">';
+  cards.forEach(function(c){kpiH+='<div class="kpi-card" style="background:'+c.bg+';color:#fff"><div class="kpi-label">'+c.l+'</div><div class="kpi-value">'+fmt(c.v)+'</div></div>';});
+  kpiH+='</div>';
+
+  var members=data.members||[];
+  var tot={totalCases:0,completed:0,inProgress:0,docsPending:0,tatBreaches:0,monitoringOpen:0,thirdPartyOpen:0,otherTasks:0};
+  var mRows='';
+  members.forEach(function(m){
+    Object.keys(tot).forEach(function(k){tot[k]+=(m[k]||0);});
+    mRows+='<tr class="click-row" onclick="goWorkspace(\''+esc(m.name)+'\')"><td>'+esc(m.name)+'</td><td>'+fmt(m.totalCases)+'</td><td>'+fmt(m.completed)+'</td><td>'+fmt(m.inProgress)+'</td><td>'+fmt(m.docsPending)+'</td><td>'+fmt(m.tatBreaches)+'</td><td>'+fmt(m.monitoringOpen)+'</td><td>'+fmt(m.thirdPartyOpen)+'</td><td>'+fmt(m.otherTasks)+'</td></tr>';
+  });
+  mRows+='<tr class="total-row"><td>TEAM TOTAL</td><td>'+tot.totalCases+'</td><td>'+tot.completed+'</td><td>'+tot.inProgress+'</td><td>'+tot.docsPending+'</td><td>'+tot.tatBreaches+'</td><td>'+tot.monitoringOpen+'</td><td>'+tot.thirdPartyOpen+'</td><td>'+tot.otherTasks+'</td></tr>';
+
+  var pipe=data.pipeline||[];
+  var pRows='';
+  pipe.forEach(function(p){pRows+='<tr><td>'+esc(p.name)+'</td><td>'+esc(p.owner)+'</td><td>'+fmt(p.total)+'</td><td>'+fmt(p.inProgress)+'</td><td>'+fmt(p.completed)+'</td><td>'+fmt(p.rejected)+'</td></tr>';});
+
+  var al=data.alerts||{};
+  var aRows=[
+    {bg:'#ffebee',fg:'#b71c1c',icon:'&#128680;',lbl:'TAT Breaches',   n:al.breach},
+    {bg:'#fff8e1',fg:'#e65100',icon:'&#128196;',lbl:'Docs Incomplete', n:al.docs},
+    {bg:'#e8f5e9',fg:'#1b5e20',icon:'&#129309;',lbl:'Third Party Open',n:al.tpOpen},
+    {bg:'#fce4ec',fg:'#880e4f',icon:'&#9200;',  lbl:'Overdue Tasks',   n:al.overdue},
+    {bg:'#e3f2fd',fg:'#0d47a1',icon:'&#128065;',lbl:'Monitoring Open', n:al.monitoringOpen}
+  ];
+  var alH='<div class="alerts-grid">';
+  aRows.forEach(function(r){alH+='<div class="alert-row" style="background:'+r.bg+';color:'+r.fg+'"><span style="font-size:16px;">'+r.icon+'</span><span class="alert-count">'+fmt(r.n)+'</span><span>'+r.lbl+'</span></div>';});
+  alH+='</div>';
+
+  setMain(
+    sec('&#128202; LIVE KPIs',kpiH,false)+
+    sec('&#128101; TEAM PERFORMANCE <span style="font-size:10px;opacity:.6;font-weight:400;margin-left:6px;">(click row → workspace)</span>',
+      tw('<thead><tr><th>Member</th><th>Total</th><th>Done</th><th>In Progress</th><th>Docs Pending</th><th>TAT Breaches</th><th>Monitoring Open</th><th>3P Open</th><th>Tasks</th></tr></thead><tbody>'+mRows+'</tbody>'))+
+    sec('&#128203; PIPELINE BY VERTICAL',
+      tw('<thead><tr><th>Vertical</th><th>Owner</th><th>Total</th><th>In Progress</th><th>Completed</th><th>Rejected</th></tr></thead><tbody>'+pRows+'</tbody>'))+
+    sec('&#128680; ALERTS',alH,false)+
+    '<div class="footer">Live view &bull; Auto-refresh 60 s &bull; Manager: Ajay &bull; Team: Harshita &middot; Vamsi &middot; Naveen &middot; Vishwash</div>'
+  );
+}
+
+// ── MY WORKSPACE ──────────────────────────────────────────
+function renderWorkspace(data) {
+  if (!data){setMain('<div class="error-box">No workspace data.</div>');return;}
+  var s=data.summary||{}, member=data.member;
+  var sumH='<div class="sum-cards">'+
+    sumCard(s.totalCases,'Total OB Cases','#1a237e')+sumCard(s.completed,'Completed','#1b5e20')+
+    sumCard(s.tatBreaches,'TAT Breaches','#b71c1c')+sumCard(s.monitoringOpen,'Monitoring Open','#0277bd')+
+    '</div>';
+  var cRows='';
+  (data.cases||[]).forEach(function(c){
+    cRows+='<tr class="click-row" onclick="openCase360(\''+esc(member)+'\','+c.rowIndex+')"><td>'+esc(c.caseId)+'</td><td>'+esc(c.vendor)+'</td><td>'+esc(c.vertical)+'</td><td>'+esc(c.dateInit)+'</td><td>'+pct(c.docPct)+'</td><td>'+progBar(c.pctDone)+'</td><td>'+fmt(c.tatDays)+'</td><td>'+badge(c.tatStatus)+'</td><td>'+badge(c.caseStatus)+'</td><td class="td-act"><button class="btn-edit" onclick="event.stopPropagation();editCase(\''+esc(member)+'\','+c.rowIndex+')">Edit</button></td></tr>';
+  });
+  var mRows='';
+  (data.monitoring||[]).forEach(function(m){
+    mRows+='<tr><td>'+esc(m.seller)+'</td><td>'+esc(m.vertical)+'</td><td>'+esc(m.month)+'</td><td>'+(m.dataCollected?'&#10003;':'')+'</td><td>'+esc(m.dataDate)+'</td><td>'+(m.followUp?'&#10003;':'')+'</td><td>'+esc(m.followUpDate)+'</td><td>'+badge(m.status)+'</td><td>'+esc(m.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editMonitoring(\''+esc(member)+'\','+m.rowIndex+')">Edit</button></td></tr>';
+  });
+  var tpRows='';
+  (data.thirdParty||[]).forEach(function(t){
+    tpRows+='<tr><td>'+esc(t.tpName)+'</td><td>'+esc(t.caseRef)+'</td><td>'+esc(t.vertical)+'</td><td>'+esc(t.assignedDate)+'</td><td>'+(t.reportRcvd?'&#10003;':'')+'</td><td>'+esc(t.reportDate)+'</td><td>'+(t.billRcvd?'&#10003;':'')+'</td><td>'+badge(t.status)+'</td><td>'+esc(t.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editThirdParty(\''+esc(member)+'\','+t.rowIndex+')">Edit</button></td></tr>';
+  });
+  var tkRows='';
+  (data.tasks||[]).forEach(function(t){
+    tkRows+='<tr><td>'+esc(t.description)+'</td><td>'+esc(t.category)+'</td><td>'+esc(t.dateAssigned)+'</td><td>'+esc(t.targetDate)+'</td><td>'+esc(t.actualDate)+'</td><td>'+fmt(t.daysOpen)+'</td><td>'+badge(t.status)+'</td><td>'+esc(t.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editTask(\''+esc(member)+'\','+t.rowIndex+')">Edit</button></td></tr>';
+  });
+  setMain(
+    '<h2 style="font-size:14px;font-weight:700;color:#1a237e;margin-bottom:14px;">&#128101; '+esc(member)+' &mdash; Workspace</h2>'+sumH+
+    secBtn('&#128203; OB Cases','(click row for detail)','newCase(\''+esc(member)+'\')',
+      tw('<thead><tr><th>Case ID</th><th>Vendor</th><th>Vertical</th><th>Date Init</th><th>Doc %</th><th>Progress</th><th>TAT Days</th><th>TAT Status</th><th>Status</th><th></th></tr></thead><tbody>'+(cRows||noRec(10))+'</tbody>'))+
+    secBtn('&#128065; Monitoring','','newMonitoring(\''+esc(member)+'\')',
+      tw('<thead><tr><th>Seller</th><th>Vertical</th><th>Month</th><th>Data Coll.</th><th>Data Date</th><th>Follow-up</th><th>F/U Date</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(mRows||noRec(10))+'</tbody>'))+
+    secBtn('&#129309; Third Party','','newThirdParty(\''+esc(member)+'\')',
+      tw('<thead><tr><th>3P Name</th><th>Case Ref</th><th>Vertical</th><th>Assigned</th><th>Report</th><th>Report Date</th><th>Bill</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(tpRows||noRec(10))+'</tbody>'))+
+    secBtn('&#128196; Other Tasks','','newTask(\''+esc(member)+'\')',
+      tw('<thead><tr><th>Task</th><th>Category</th><th>Assigned</th><th>Target</th><th>Actual</th><th>Days Open</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(tkRows||noRec(9))+'</tbody>'))
+  );
+}
+
+// ── OB CASES LIST ─────────────────────────────────────────
+function renderCases(data) {
+  var all=data||[],f=state.filters.cases;
+  var owners=uniq(all.map(function(c){return c.owner;}));
+  var verts =uniq(all.map(function(c){return c.vertical;}));
+  var stats =uniq(all.map(function(c){return c.caseStatus;}));
+  var fil=all.filter(function(c){return(!f.owner||c.owner===f.owner)&&(!f.vertical||c.vertical===f.vertical)&&(!f.status||c.caseStatus===f.status);});
+  var rows='';
+  fil.forEach(function(c){
+    rows+='<tr class="click-row" onclick="openCase360(\''+esc(c.owner)+'\','+c.rowIndex+')"><td>'+esc(c.caseId)+'</td><td>'+esc(c.owner)+'</td><td>'+esc(c.vendor)+'</td><td>'+esc(c.vertical)+'</td><td>'+esc(c.dateInit)+'</td><td>'+pct(c.docPct)+'</td><td>'+progBar(c.pctDone)+'</td><td>'+fmt(c.tatDays)+'</td><td>'+badge(c.tatStatus)+'</td><td>'+badge(c.caseStatus)+'</td><td class="td-act"><button class="btn-edit" onclick="event.stopPropagation();editCase(\''+esc(c.owner)+'\','+c.rowIndex+')">Edit</button></td></tr>';
+  });
+  var filterH='<div class="filters"><span class="filter-lbl">Filter:</span>'+
+    mkFsel(owners,f.owner,'Owner',"applyFilter('cases','owner',this.value)")+
+    mkFsel(verts, f.vertical,'Vertical',"applyFilter('cases','vertical',this.value)")+
+    mkFsel(stats, f.status,'Status',"applyFilter('cases','status',this.value)")+
+    '</div>';
+  setMain(secBtn('&#128203; OB CASES',fil.length+' of '+all.length,'newCase(null)',
+    filterH+tw('<thead><tr><th>Case ID</th><th>Owner</th><th>Vendor</th><th>Vertical</th><th>Date Init</th><th>Doc %</th><th>Progress</th><th>TAT Days</th><th>TAT Status</th><th>Status</th><th></th></tr></thead><tbody>'+(rows||noRec(11))+'</tbody>')));
+}
+
+// ── CASE 360 ──────────────────────────────────────────────
+function openCase360(owner,row) {
+  state.c360={owner:owner,row:row};
+  state.tab360='overview';
+  navigate('case360');
+}
+
+function renderCase360(data) {
+  if (!data){setMain('<div class="error-box">Case not found.</div>');return;}
+  var c=data.case||{};
+  var heroH='<div class="case-hero"><div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+    '<div><div class="case-title">'+esc(c.vendor)+'</div>'+
+    '<div class="case-sub">'+esc(c.caseId)+' &bull; '+esc(c.vertical)+' &bull; Owner: '+esc(c.owner)+'</div>'+
+    '<div class="case-chips">'+badge(c.caseStatus)+' '+badge(c.tatStatus)+' '+badge(c.docStatus)+
+    ' <button class="btn-edit" style="margin-left:4px;" onclick="editCase(\''+esc(c.owner)+'\','+c.rowIndex+')">&#9998; Edit</button></div></div>'+
+    '<div style="text-align:right"><div style="font-size:10px;color:#546e7a;text-transform:uppercase;letter-spacing:.3px;">TAT Days</div>'+
+    '<div style="font-size:30px;font-weight:700;color:#1a237e;">'+fmt(c.tatDays)+'</div></div></div></div>';
+
+  var tabs=[{id:'overview',lbl:'Overview'},{id:'workflow',lbl:'Workflow'},{id:'monitoring',lbl:'Monitoring'},{id:'thirdparty',lbl:'Third Party'}];
+  var tabH='<div class="case-tabs">';
+  tabs.forEach(function(t){tabH+='<div class="case-tab'+(state.tab360===t.id?' active':'')+'" onclick="switchTab360(\''+t.id+'\')">'+t.lbl+'</div>';});
+  tabH+='</div>';
+
+  var bodyH='';
+  if (state.tab360==='overview') {
+    bodyH='<div class="detail-grid">'+
+      dc('Date Initiated',c.dateInit)+dc('Doc % Collected',pct(c.docPct))+dc('Doc Status',c.docStatus)+
+      dc('Progress',pct(c.pctDone))+dc('TAT Days',fmt(c.tatDays))+dc('TAT Status',c.tatStatus)+
+      dc('Decision',fmt(c.decision))+dc('Owner',c.owner)+dc('Case Status',c.caseStatus)+
+      '</div>';
+  } else if (state.tab360==='workflow') {
+    var steps=[
+      {lbl:'Doc Validation',done:c.docValid,   date:c.docValidDate},
+      {lbl:'Stage 2',       done:c.stage2,     date:c.stage2Date},
+      {lbl:'Stage 3',       done:c.stage3,     date:c.stage3Date},
+      {lbl:'Stage 4',       done:c.stage4,     date:c.stage4Date},
+      {lbl:'MOM',           done:c.mom,        date:c.momDate},
+      {lbl:'L1 Approval',   done:c.l1Approval, date:c.l1Date}
+    ];
+    bodyH='';
+    steps.forEach(function(s){
+      var done=s.done==='Y'||s.done===true;
+      bodyH+='<div class="workflow-step"><span style="font-size:18px;">'+(done?'&#9989;':'&#9898;')+'</span><span class="ws-label">'+esc(s.lbl)+'</span><span class="ws-date">'+esc(s.date||'—')+'</span></div>';
+    });
+  } else if (state.tab360==='monitoring') {
+    var mR='';
+    (data.monitoring||[]).forEach(function(m){mR+='<tr><td>'+esc(m.seller)+'</td><td>'+esc(m.vertical)+'</td><td>'+esc(m.month)+'</td><td>'+(m.dataCollected?'&#10003;':'—')+'</td><td>'+esc(m.dataDate)+'</td><td>'+badge(m.status)+'</td><td>'+esc(m.remarks)+'</td></tr>';});
+    bodyH=tw('<thead><tr><th>Seller</th><th>Vertical</th><th>Month</th><th>Data Coll.</th><th>Data Date</th><th>Status</th><th>Remarks</th></tr></thead><tbody>'+(mR||noRec(7))+'</tbody>');
+  } else if (state.tab360==='thirdparty') {
+    var tR='';
+    (data.thirdParty||[]).forEach(function(t){tR+='<tr><td>'+esc(t.tpName)+'</td><td>'+esc(t.caseRef)+'</td><td>'+esc(t.vertical)+'</td><td>'+esc(t.assignedDate)+'</td><td>'+(t.reportRcvd?'&#10003;':'—')+'</td><td>'+badge(t.status)+'</td><td>'+esc(t.remarks)+'</td></tr>';});
+    bodyH=tw('<thead><tr><th>3P Name</th><th>Case Ref</th><th>Vertical</th><th>Assigned</th><th>Report</th><th>Status</th><th>Remarks</th></tr></thead><tbody>'+(tR||noRec(7))+'</tbody>');
+  }
+  setMain('<div class="back-link" onclick="navigate(\'cases\')">&#8592; Back to Cases</div>'+heroH+tabH+bodyH);
+}
+
+function switchTab360(t) {
+  state.tab360=t;
+  var d=state.data[cKey('case360')];
+  if(d) renderCase360(d);
+}
+
+// ── MONITORING ────────────────────────────────────────────
+function renderMonitoring(data) {
+  var all=data||[],f=state.filters.monitoring;
+  var owners=uniq(all.map(function(r){return r.owner;}));
+  var stats =uniq(all.map(function(r){return r.status;}));
+  var fil=all.filter(function(r){return(!f.owner||r.owner===f.owner)&&(!f.status||r.status===f.status);});
+  var rows='';
+  fil.forEach(function(r){
+    rows+='<tr><td>'+esc(r.owner)+'</td><td>'+esc(r.seller)+'</td><td>'+esc(r.vertical)+'</td><td>'+esc(r.month)+'</td><td>'+(r.dataCollected?'&#10003;':'')+'</td><td>'+esc(r.dataDate)+'</td><td>'+(r.followUp?'&#10003;':'')+'</td><td>'+esc(r.followUpDate)+'</td><td>'+(r.outcome?'&#10003;':'')+'</td><td>'+esc(r.presentDate)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editMonitoring(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
+  });
+  var filterH='<div class="filters">'+mkFsel(owners,f.owner,'Owner',"applyFilter('monitoring','owner',this.value)")+mkFsel(stats,f.status,'Status',"applyFilter('monitoring','status',this.value)")+'</div>';
+  setMain(secBtn('&#128065; MONITORING',fil.length+' records','newMonitoring(null)',
+    filterH+tw('<thead><tr><th>Owner</th><th>Seller</th><th>Vertical</th><th>Month</th><th>Data Coll.</th><th>Data Date</th><th>Follow-up</th><th>F/U Date</th><th>Outcome</th><th>Present Date</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(rows||noRec(13))+'</tbody>')));
+}
+
+// ── THIRD PARTY ───────────────────────────────────────────
+function renderThirdParty(data) {
+  var all=data||[],f=state.filters.thirdparty;
+  var owners=uniq(all.map(function(r){return r.owner;}));
+  var stats =uniq(all.map(function(r){return r.status;}));
+  var fil=all.filter(function(r){return(!f.owner||r.owner===f.owner)&&(!f.status||r.status===f.status);});
+  var rows='';
+  fil.forEach(function(r){
+    rows+='<tr><td>'+esc(r.owner)+'</td><td>'+esc(r.tpName)+'</td><td>'+esc(r.caseRef)+'</td><td>'+esc(r.vertical)+'</td><td>'+esc(r.assignedDate)+'</td><td>'+(r.reportRcvd?'&#10003;':'')+'</td><td>'+esc(r.reportDate)+'</td><td>'+(r.billRcvd?'&#10003;':'')+'</td><td>'+(r.billValid?'&#10003;':'')+'</td><td>'+esc(r.billDate)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editThirdParty(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
+  });
+  var filterH='<div class="filters">'+mkFsel(owners,f.owner,'Owner',"applyFilter('thirdparty','owner',this.value)")+mkFsel(stats,f.status,'Status',"applyFilter('thirdparty','status',this.value)")+'</div>';
+  setMain(secBtn('&#129309; THIRD PARTY',fil.length+' records','newThirdParty(null)',
+    filterH+tw('<thead><tr><th>Owner</th><th>3P Name</th><th>Case/Bill Ref</th><th>Vertical</th><th>Assigned</th><th>Report</th><th>Rpt Date</th><th>Bill</th><th>Bill Valid</th><th>Bill Date</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(rows||noRec(13))+'</tbody>')));
+}
+
+// ── PROJECTS ──────────────────────────────────────────────
+function renderProjects(data) {
+  var all=data||[],f=state.filters.projects;
+  var owners=uniq(all.map(function(r){return r.owner;}));
+  var stats =uniq(all.map(function(r){return r.status;}));
+  var fil=all.filter(function(r){return(!f.owner||r.owner===f.owner)&&(!f.status||r.status===f.status);});
+  var rows='';
+  fil.forEach(function(r){
+    rows+='<tr><td>'+esc(r.owner)+'</td><td>'+esc(r.description)+'</td><td>'+esc(r.category)+'</td><td>'+esc(r.dateAssigned)+'</td><td>'+esc(r.targetDate)+'</td><td>'+esc(r.actualDate)+'</td><td>'+fmt(r.daysOpen)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editTask(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
+  });
+  var filterH='<div class="filters">'+mkFsel(owners,f.owner,'Owner',"applyFilter('projects','owner',this.value)")+mkFsel(stats,f.status,'Status',"applyFilter('projects','status',this.value)")+'</div>';
+  setMain(secBtn('&#128196; PROJECTS &amp; OTHER TASKS',fil.length+' tasks','newTask(null)',
+    filterH+tw('<thead><tr><th>Owner</th><th>Task</th><th>Category</th><th>Assigned</th><th>Target</th><th>Actual</th><th>Days Open</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(rows||noRec(10))+'</tbody>')));
+}
+
+// ── PERFORMANCE ───────────────────────────────────────────
+function renderPerformance(data) {
+  if(!data){setMain('<div class="error-box">No data.</div>');return;}
+  var members=data.members||[];
+  var tc=0,co=0,br=0;
+  members.forEach(function(m){tc+=(m.totalCases||0);co+=(m.completed||0);br+=(m.breaches||0);});
+  var perfH='<div class="perf-grid">'+
+    pCard(tc,'Total Cases')+pCard(co,'Completed')+pCard(br,'TAT Breaches')+pCard(data.tatTarget+'d','TAT Target')+
+    '</div>';
+  var rows='';
+  members.forEach(function(m){
+    rows+='<tr><td>'+esc(m.name)+'</td><td>'+fmt(m.totalCases)+'</td><td>'+fmt(m.completed)+'</td><td>'+fmt(m.inProgress)+'</td><td>'+fmt(m.breaches)+'</td><td>'+(m.avgTat!==null?m.avgTat:'—')+'</td><td>'+(m.slaPct!==null?m.slaPct+'%':'—')+'</td></tr>';
+  });
+  setMain(
+    '<div style="margin-bottom:20px;">'+perfH+'</div>'+
+    sec('&#128200; MEMBER BREAKDOWN',
+      tw('<thead><tr><th>Member</th><th>Total Cases</th><th>Completed</th><th>In Progress</th><th>Breaches</th><th>Avg TAT (days)</th><th>SLA %</th></tr></thead><tbody>'+rows+'</tbody>'))
+  );
+}
+
+// ── SETTINGS ──────────────────────────────────────────────
+function renderSettings(data) {
+  if(!data){setMain('<div class="error-box">No data.</div>');return;}
+  var teamH=(data.team||[]).map(function(m){return '<div class="set-row"><span class="set-key">'+esc(m.name)+' ('+esc(m.role)+')</span><span>'+esc(m.vertical)+(m.fallback?' / '+esc(m.fallback):'')+' &bull; 3P: '+esc(m.thirdParty)+'</span></div>';}).join('');
+  var vertH=(data.verticals||[]).map(function(v){return '<div class="set-row"><span class="set-key">'+esc(v.name)+'</span><span>Owner: '+esc(v.owner)+(v.fallback?' &bull; Fallback: '+esc(v.fallback):'')+' </span></div>';}).join('');
+  var mpH=(data.stagesMpEpr||[]).map(function(s){return '<div class="set-row"><span class="set-key">'+esc(s.order)+'. '+esc(s.label)+'</span><span>'+Math.round(s.weight*100)+'%</span></div>';}).join('');
+  var ompH=(data.stagesOmp||[]).map(function(s){return '<div class="set-row"><span class="set-key">'+esc(s.order)+'. '+esc(s.label)+'</span><span>'+Math.round(s.weight*100)+'%</span></div>';}).join('');
+  setMain(
+    '<div class="set-card" style="background:#e8eaf6;"><div style="font-size:28px;font-weight:700;color:#1a237e;">'+fmt(data.tatTarget)+'d</div>'+
+    '<div style="font-size:10px;color:#546e7a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;">TAT Target (working days)</div>'+
+    '<div style="font-size:11px;color:#546e7a;">TAT starts only when Doc % Collected = 100%. If docs are incomplete, TAT is paused.</div></div>'+
+    '<div class="set-card"><h3>Team Roster</h3>'+teamH+'</div>'+
+    '<div class="set-card"><h3>Verticals &amp; Ownership</h3>'+vertH+'</div>'+
+    '<div class="set-card"><h3>Stage Weights — Marketplace &amp; EPR</h3>'+mpH+'</div>'+
+    '<div class="set-card"><h3>Stage Weights — Open Marketplace</h3>'+ompH+'</div>'
+  );
+}
+
+// ── Modal ─────────────────────────────────────────────────
+function openModal(title,bodyHtml,saveFn) {
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').innerHTML=bodyHtml;
+  pendingSave=saveFn;
+  var btn=document.getElementById('modal-save'); btn.disabled=false; btn.textContent='Save';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); pendingSave=null; }
+function runSave()    { if(pendingSave) pendingSave(); }
+function afterSave()  { state.data={}; closeModal(); loadView(state.view); }
+function modalSaving() {
+  var btn=document.getElementById('modal-save'); btn.disabled=true; btn.textContent='Saving…';
+}
+function modalErr(e) {
+  var btn=document.getElementById('modal-save'); btn.disabled=false; btn.textContent='Save';
+  alert(e.message||String(e));
+}
+
+// ── Form helpers ──────────────────────────────────────────
+function frow(label,inp) { return '<div class="form-row"><label class="form-label">'+label+'</label>'+inp+'</div>'; }
+function finp(id,val,type) { return '<input class="form-inp" id="'+id+'" type="'+(type||'text')+'" value="'+esc(val||'')+'" autocomplete="off">'; }
+function fdate(id,val)   { return finp(id,toInputDate(val),'date'); }
+function fnum(id,val,mn,mx) { return '<input class="form-inp" id="'+id+'" type="number" min="'+(mn||0)+'" max="'+(mx||100)+'" value="'+esc(String(val||''))+'" autocomplete="off">'; }
+function ftxt(id,val)    { return '<textarea class="form-inp" id="'+id+'" rows="2">'+esc(val||'')+'</textarea>'; }
+function fselInp(id,opts,val) {
+  var h='<select class="form-inp" id="'+id+'">';
+  opts.forEach(function(o){h+='<option value="'+esc(o)+'"'+(String(o)===String(val)?' selected':'')+'>'+esc(o||'— select —')+'</option>';});
+  return h+'</select>';
+}
+function ownerFld(current) {
+  if(current) return '<div class="owner-badge">'+esc(current)+'</div><input type="hidden" id="f-owner" value="'+esc(current)+'">';
+  return fselInp('f-owner',[''].concat(MEMBERS),'');
+}
+
+// ── OB Case form ──────────────────────────────────────────
+function newCase(owner)  { openCaseForm(owner,null); }
+function editCase(owner,rowIndex) {
+  google.script.run
+    .withSuccessHandler(function(d){if(d)openCaseForm(owner,d.case);})
+    .withFailureHandler(modalErr)
+    .getCase360Data(owner,rowIndex);
+}
+function openCaseForm(owner,c) {
+  var d=c||{};
+  var docPctDisplay=d.docPct!==undefined ? Math.round(d.docPct*100) : '';
+  var body='<div class="form-grid">'+
+    '<div class="form-row span2"><label class="form-label">Owner</label>'+ownerFld(owner)+'</div>'+
+    frow('Case ID',            finp('f-caseId',d.caseId))+
+    frow('Vendor Name',        finp('f-vendor',d.vendor))+
+    '<div class="form-row span2"><label class="form-label">Vertical</label>'+fselInp('f-vertical',VERTICALS,d.vertical)+'</div>'+
+    frow('Date Initiated',     fdate('f-dateInit',d.dateInit))+
+    frow('Doc % Collected (0–100)', fnum('f-docPct',docPctDisplay,0,100))+
+    frow('Doc Validation Y/N', fselInp('f-docValid',YN,d.docValid))+
+    frow('Doc Validation Date',fdate('f-docVDate',d.docValidDate))+
+    frow('Stage 2 Y/N',        fselInp('f-stage2',YN,d.stage2))+
+    frow('Stage 2 Date',       fdate('f-stage2Date',d.stage2Date))+
+    frow('Stage 3 Y/N',        fselInp('f-stage3',YN,d.stage3))+
+    frow('Stage 3 Date',       fdate('f-stage3Date',d.stage3Date))+
+    frow('Stage 4 Y/N',        fselInp('f-stage4',YN,d.stage4))+
+    frow('Stage 4 Date',       fdate('f-stage4Date',d.stage4Date))+
+    frow('Decision',           finp('f-decision',d.decision))+
+    frow('MOM Y/N',            fselInp('f-mom',YN,d.mom))+
+    frow('MOM Date',           fdate('f-momDate',d.momDate))+
+    frow('L1 Approval Y/N',    fselInp('f-l1Approval',YN,d.l1Approval))+
+    frow('L1 Approval Date',   fdate('f-l1Date',d.l1Date))+
+    '</div>';
+  openModal((c?'Edit':'New')+' OB Case',body,function(){
+    var ow=gv('f-owner');
+    if(!ow){alert('Please select an owner.');return;}
+    if(!gv('f-caseId')){alert('Case ID is required.');return;}
+    modalSaving();
+    google.script.run
+      .withSuccessHandler(afterSave)
+      .withFailureHandler(modalErr)
+      .saveCaseData(ow,c?c.rowIndex:0,{
+        caseId:gv('f-caseId'),vendor:gv('f-vendor'),vertical:gv('f-vertical'),
+        dateInit:gv('f-dateInit'),docPct:gv('f-docPct'),
+        docValid:gv('f-docValid'),docValidDate:gv('f-docVDate'),
+        stage2:gv('f-stage2'),stage2Date:gv('f-stage2Date'),
+        stage3:gv('f-stage3'),stage3Date:gv('f-stage3Date'),
+        stage4:gv('f-stage4'),stage4Date:gv('f-stage4Date'),
+        decision:gv('f-decision'),mom:gv('f-mom'),momDate:gv('f-momDate'),
+        l1Approval:gv('f-l1Approval'),l1Date:gv('f-l1Date')
       });
-      return html + '</div></div>';
-    }
+  });
+}
 
-    function renderTeam(members) {
-      if (!members || !members.length) return '';
-      var totals = { totalCases:0, completed:0, inProgress:0, docsPending:0, tatBreaches:0, monitoringOpen:0, thirdPartyOpen:0, otherTasks:0 };
-      var rows = '';
-      members.forEach(function(m) {
-        rows += '<tr><td>' + m.name + '</td><td>' + fmt(m.totalCases) + '</td><td>' + fmt(m.completed) +
-          '</td><td>' + fmt(m.inProgress) + '</td><td>' + fmt(m.docsPending) + '</td><td>' + fmt(m.tatBreaches) +
-          '</td><td>' + fmt(m.monitoringOpen) + '</td><td>' + fmt(m.thirdPartyOpen) + '</td><td>' + fmt(m.otherTasks) + '</td></tr>';
-        totals.totalCases     += (m.totalCases     || 0);
-        totals.completed      += (m.completed      || 0);
-        totals.inProgress     += (m.inProgress     || 0);
-        totals.docsPending    += (m.docsPending    || 0);
-        totals.tatBreaches    += (m.tatBreaches    || 0);
-        totals.monitoringOpen += (m.monitoringOpen || 0);
-        totals.thirdPartyOpen += (m.thirdPartyOpen || 0);
-        totals.otherTasks     += (m.otherTasks     || 0);
+// ── Monitoring form ───────────────────────────────────────
+function newMonitoring(owner)  { openMonitoringForm(owner,null); }
+function editMonitoring(owner,rowIndex) {
+  google.script.run
+    .withSuccessHandler(function(d){if(d){var rec=findRec(d.monitoring,rowIndex);openMonitoringForm(owner,rec);}})
+    .withFailureHandler(modalErr)
+    .getWorkspaceData(owner);
+}
+function findRec(arr,rowIndex) { return (arr||[]).find(function(r){return r.rowIndex===rowIndex;})||null; }
+
+function openMonitoringForm(owner,m) {
+  var d=m||{};
+  var body='<div class="form-grid">'+
+    '<div class="form-row span2"><label class="form-label">Owner</label>'+ownerFld(owner)+'</div>'+
+    frow('Seller Name',       finp('f-seller',d.seller))+
+    '<div class="form-row"><label class="form-label">Vertical</label>'+fselInp('f-vertical',VERTICALS,d.vertical)+'</div>'+
+    frow('Month (e.g. Jan-2024)', finp('f-month',d.month))+
+    frow('Data Collected Y/N', fselInp('f-dataCol',YN,d.dataCollected))+
+    frow('Data Collect Date',  fdate('f-dataDate',d.dataDate))+
+    frow('Follow-up Y/N',     fselInp('f-followUp',YN,d.followUp))+
+    frow('Follow-up Date',    fdate('f-fuDate',d.followUpDate))+
+    frow('Outcome Y/N',       fselInp('f-outcome',YN,d.outcome))+
+    frow('Presentation Date', fdate('f-presDate',d.presentDate))+
+    '<div class="form-row span2"><label class="form-label">Remarks</label>'+ftxt('f-remarks',d.remarks)+'</div>'+
+    '</div>';
+  openModal((m?'Edit':'New')+' Monitoring Record',body,function(){
+    var ow=gv('f-owner');
+    if(!ow){alert('Please select an owner.');return;}
+    if(!gv('f-seller')){alert('Seller name is required.');return;}
+    modalSaving();
+    google.script.run
+      .withSuccessHandler(afterSave)
+      .withFailureHandler(modalErr)
+      .saveMonitoringRecord(ow,m?m.rowIndex:0,{
+        seller:gv('f-seller'),vertical:gv('f-vertical'),month:gv('f-month'),
+        dataCollected:gv('f-dataCol'),dataDate:gv('f-dataDate'),
+        followUp:gv('f-followUp'),followUpDate:gv('f-fuDate'),
+        outcome:gv('f-outcome'),presentDate:gv('f-presDate'),
+        remarks:gv('f-remarks')
       });
-      return '<div class="section"><div class="section-title">&#128101; TEAM PERFORMANCE SUMMARY</div><div class="table-wrap"><table>' +
-        '<thead><tr><th>Member</th><th>Total Cases</th><th>Completed</th><th>In Progress</th>' +
-        '<th>Docs Pending</th><th>TAT Breaches</th><th>Monitoring Open</th><th>3P Open</th><th>Other Tasks</th></tr></thead>' +
-        '<tbody>' + rows +
-        '<tr class="total-row"><td>TEAM TOTAL</td><td>' + totals.totalCases + '</td><td>' + totals.completed +
-        '</td><td>' + totals.inProgress + '</td><td>' + totals.docsPending + '</td><td>' + totals.tatBreaches +
-        '</td><td>' + totals.monitoringOpen + '</td><td>' + totals.thirdPartyOpen + '</td><td>' + totals.otherTasks + '</td></tr>' +
-        '</tbody></table></div></div>';
-    }
+  });
+}
 
-    function renderPipeline(pipeline) {
-      if (!pipeline || !pipeline.length) return '';
-      var rows = '';
-      pipeline.forEach(function(p) {
-        rows += '<tr><td>' + p.name + '</td><td>' + p.owner + '</td><td>' + fmt(p.total) +
-          '</td><td>' + fmt(p.inProgress) + '</td><td>' + fmt(p.completed) + '</td><td>' + fmt(p.rejected) + '</td></tr>';
+// ── Third Party form ──────────────────────────────────────
+function newThirdParty(owner)  { openThirdPartyForm(owner,null); }
+function editThirdParty(owner,rowIndex) {
+  google.script.run
+    .withSuccessHandler(function(d){if(d){var rec=findRec(d.thirdParty,rowIndex);openThirdPartyForm(owner,rec);}})
+    .withFailureHandler(modalErr)
+    .getWorkspaceData(owner);
+}
+function openThirdPartyForm(owner,t) {
+  var d=t||{};
+  var body='<div class="form-grid">'+
+    '<div class="form-row span2"><label class="form-label">Owner</label>'+ownerFld(owner)+'</div>'+
+    frow('3P Name',             finp('f-tpName',d.tpName))+
+    frow('Case/Bill Reference', finp('f-caseRef',d.caseRef))+
+    '<div class="form-row"><label class="form-label">Vertical</label>'+fselInp('f-vertical',VERTICALS,d.vertical)+'</div>'+
+    frow('Assigned Date',       fdate('f-assignedDate',d.assignedDate))+
+    frow('Report Received Y/N', fselInp('f-reportRcvd',YN,d.reportRcvd))+
+    frow('Report Date',         fdate('f-reportDate',d.reportDate))+
+    frow('Bill Received Y/N',   fselInp('f-billRcvd',YN,d.billRcvd))+
+    frow('Bill Validated Y/N',  fselInp('f-billValid',YN,d.billValid))+
+    frow('Bill Date',           fdate('f-billDate',d.billDate))+
+    '<div class="form-row span2"><label class="form-label">Remarks</label>'+ftxt('f-remarks',d.remarks)+'</div>'+
+    '</div>';
+  openModal((t?'Edit':'New')+' Third Party Record',body,function(){
+    var ow=gv('f-owner');
+    if(!ow){alert('Please select an owner.');return;}
+    if(!gv('f-tpName')){alert('3P Name is required.');return;}
+    modalSaving();
+    google.script.run
+      .withSuccessHandler(afterSave)
+      .withFailureHandler(modalErr)
+      .saveThirdPartyRecord(ow,t?t.rowIndex:0,{
+        tpName:gv('f-tpName'),caseRef:gv('f-caseRef'),vertical:gv('f-vertical'),
+        assignedDate:gv('f-assignedDate'),reportRcvd:gv('f-reportRcvd'),reportDate:gv('f-reportDate'),
+        billRcvd:gv('f-billRcvd'),billValid:gv('f-billValid'),billDate:gv('f-billDate'),
+        remarks:gv('f-remarks')
       });
-      return '<div class="section"><div class="section-title">&#128203; PIPELINE BY VERTICAL</div><div class="table-wrap"><table>' +
-        '<thead><tr><th>Vertical</th><th>Owner</th><th>Total</th><th>In Progress</th><th>Completed</th><th>Rejected</th></tr></thead>' +
-        '<tbody>' + rows + '</tbody></table></div></div>';
-    }
+  });
+}
 
-    function renderAlerts(alerts) {
-      if (!alerts) return '';
-      var rows = [
-        { bg:'#ffebee', fg:'#b71c1c', icon:'&#128680;', label:'TAT Breaches',    count: alerts.breach         },
-        { bg:'#fff8e1', fg:'#e65100', icon:'&#128196;', label:'Docs Incomplete',  count: alerts.docs           },
-        { bg:'#e8f5e9', fg:'#1b5e20', icon:'&#129309;', label:'Third Party Open', count: alerts.tpOpen         },
-        { bg:'#fce4ec', fg:'#880e4f', icon:'&#9200;',   label:'Overdue Tasks',    count: alerts.overdue        },
-        { bg:'#e3f2fd', fg:'#0d47a1', icon:'&#128065;', label:'Monitoring Open',  count: alerts.monitoringOpen }
-      ];
-      var html = '<div class="section"><div class="section-title">&#128680; ALERTS &nbsp;(action needed)</div><div class="alerts-grid">';
-      rows.forEach(function(r) {
-        html += '<div class="alert-row" style="background:' + r.bg + ';color:' + r.fg + '">' +
-          '<span class="alert-icon">' + r.icon + '</span>' +
-          '<span class="alert-count">' + fmt(r.count) + '</span>' +
-          '<span>' + r.label + '</span></div>';
+// ── Task form ─────────────────────────────────────────────
+function newTask(owner)  { openTaskForm(owner,null); }
+function editTask(owner,rowIndex) {
+  google.script.run
+    .withSuccessHandler(function(d){if(d){var rec=findRec(d.tasks,rowIndex);openTaskForm(owner,rec);}})
+    .withFailureHandler(modalErr)
+    .getWorkspaceData(owner);
+}
+function openTaskForm(owner,t) {
+  var d=t||{};
+  var body='<div class="form-grid">'+
+    '<div class="form-row span2"><label class="form-label">Owner</label>'+ownerFld(owner)+'</div>'+
+    '<div class="form-row span2">'+frow('Task Description', finp('f-desc',d.description))+'</div>'+
+    frow('Category',           finp('f-category',d.category))+
+    frow('Date Assigned',      fdate('f-dateAssigned',d.dateAssigned))+
+    frow('Target Completion',  fdate('f-targetDate',d.targetDate))+
+    frow('Actual Completion',  fdate('f-actualDate',d.actualDate))+
+    '<div class="form-row span2"><label class="form-label">Remarks</label>'+ftxt('f-remarks',d.remarks)+'</div>'+
+    '</div>';
+  openModal((t?'Edit':'New')+' Task',body,function(){
+    var ow=gv('f-owner');
+    if(!ow){alert('Please select an owner.');return;}
+    if(!gv('f-desc')){alert('Task description is required.');return;}
+    modalSaving();
+    google.script.run
+      .withSuccessHandler(afterSave)
+      .withFailureHandler(modalErr)
+      .saveTaskRecord(ow,t?t.rowIndex:0,{
+        description:gv('f-desc'),category:gv('f-category'),
+        dateAssigned:gv('f-dateAssigned'),targetDate:gv('f-targetDate'),actualDate:gv('f-actualDate'),
+        remarks:gv('f-remarks')
       });
-      return html + '</div></div>';
-    }
+  });
+}
 
-    window.onload = loadData;
-  </script>
+// ── Layout helpers ────────────────────────────────────────
+function sec(title,content,wrap) {
+  var inner=(wrap===false)?content:'<div class="table-wrap">'+content+'</div>';
+  return '<div class="section"><div class="section-title">'+title+'</div>'+inner+'</div>';
+}
+function secBtn(title,sub,btnFn,content) {
+  var btn='<button class="btn-add" onclick="'+btnFn+'">+ Add</button>';
+  return '<div class="section"><div class="section-title">'+title+'<span class="st-right"><span>'+sub+'</span>'+btn+'</span></div>'+content+'</div>';
+}
+function tw(inner) { return '<div class="table-wrap"><table>'+inner+'</table></div>'; }
+function dc(lbl,val) { return '<div class="detail-cell"><div class="dc-lbl">'+lbl+'</div><div class="dc-val">'+esc(String(fmt(val)))+'</div></div>'; }
+function sumCard(val,lbl,color) { return '<div class="sum-card"><div class="sum-val" style="color:'+color+'">'+fmt(val)+'</div><div class="sum-lbl">'+lbl+'</div></div>'; }
+function pCard(val,lbl) { return '<div class="perf-card"><div class="perf-val">'+fmt(val)+'</div><div class="perf-lbl">'+lbl+'</div></div>'; }
+function noRec(cols) { return '<tr><td colspan="'+cols+'" style="text-align:center;color:#90a4ae;padding:16px;">No records</td></tr>'; }
+
+// ── Bootstrap ─────────────────────────────────────────────
+window.onload = function() { navigate('dashboard'); };
+</script>
 </body>
 </html>
