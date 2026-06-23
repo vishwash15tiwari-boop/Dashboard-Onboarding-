@@ -5,7 +5,7 @@ import PipelineTable from './components/PipelineTable.jsx';
 import AlertsPanel   from './components/AlertsPanel.jsx';
 
 // ─── Replace with your deployed GAS Web App URL ───────────────
-const API_URL = 'YOUR_GAS_WEB_APP_URL';
+const API_URL = 'https://script.google.com/a/macros/recykal.com/s/AKfycbzaFkTqx47Q8RCbhEw31rheVFRJAOCOQd1C2xkACXQ/dev';
 // ─────────────────────────────────────────────────────────────
 
 const AUTO_REFRESH_MS = 60_000; // refresh every 60 seconds
