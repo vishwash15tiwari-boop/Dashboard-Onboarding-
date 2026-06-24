@@ -172,9 +172,31 @@
 </head>
 <body>
 
+<!-- Login screen -->
+<div id="login-screen" style="position:fixed;inset:0;background:#1a237e;display:flex;align-items:center;justify-content:center;z-index:999;">
+  <div style="background:#fff;border-radius:12px;padding:32px 36px;width:min(380px,94vw);box-shadow:0 8px 32px rgba(0,0,0,.3);">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:28px;margin-bottom:8px;">&#9881;</div>
+      <h2 style="font-size:15px;font-weight:700;color:#1a237e;margin-bottom:4px;">Onboarding Operations Platform</h2>
+      <p style="font-size:11px;color:#546e7a;">Sign in with your Recykal email</p>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:10px;font-weight:600;color:#546e7a;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:4px;">Email</label>
+      <input id="login-email" type="email" placeholder="you@recykal.com" style="width:100%;border:1px solid #cfd8dc;border-radius:4px;padding:8px 10px;font-size:12px;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()">
+    </div>
+    <div style="margin-bottom:6px;">
+      <label style="font-size:10px;font-weight:600;color:#546e7a;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:4px;">Password</label>
+      <input id="login-pass" type="password" placeholder="••••••••" style="width:100%;border:1px solid #cfd8dc;border-radius:4px;padding:8px 10px;font-size:12px;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div id="login-err" style="color:#b71c1c;font-size:11px;margin:8px 0;min-height:16px;"></div>
+    <button id="login-btn" onclick="doLogin()" style="width:100%;background:#1a237e;color:#fff;border:none;border-radius:4px;padding:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">Sign In</button>
+  </div>
+</div>
+
 <header class="app-header">
   <h1>&#9881; ONBOARDING OPERATIONS PLATFORM</h1>
   <div class="header-right">
+    <span id="header-user" style="font-size:11px;opacity:.75;"></span>
     <span id="updated-time"></span>
     <button class="refresh-btn" id="refresh-btn" onclick="onRefresh()">&#8635; Refresh</button>
   </div>
@@ -193,17 +215,17 @@
       </select>
     </div>
     <div class="nav-sec">Overview</div>
-    <div class="nav-item active" data-v="dashboard"   onclick="navigate('dashboard')">  <span class="nav-icon">&#128202;</span> Control Tower</div>
-    <div class="nav-item"        data-v="workspace"   onclick="navigate('workspace')">  <span class="nav-icon">&#128101;</span> My Workspace</div>
+    <div class="nav-item nav-admin" data-v="dashboard"   onclick="navigate('dashboard')">  <span class="nav-icon">&#128202;</span> Control Tower</div>
+    <div class="nav-item"          data-v="workspace"   onclick="navigate('workspace')">  <span class="nav-icon">&#128101;</span> My Workspace</div>
     <div class="nav-sec">Operations</div>
-    <div class="nav-item"        data-v="cases"       onclick="navigate('cases')">      <span class="nav-icon">&#128203;</span> OB Cases</div>
-    <div class="nav-item"        data-v="monitoring"  onclick="navigate('monitoring')"> <span class="nav-icon">&#128065;</span> Monitoring</div>
-    <div class="nav-item"        data-v="thirdparty"  onclick="navigate('thirdparty')"> <span class="nav-icon">&#129309;</span> Third Party</div>
-    <div class="nav-item"        data-v="projects"    onclick="navigate('projects')">   <span class="nav-icon">&#128196;</span> Projects</div>
+    <div class="nav-item"          data-v="cases"       onclick="navigate('cases')">      <span class="nav-icon">&#128203;</span> OB Cases</div>
+    <div class="nav-item"          data-v="monitoring"  onclick="navigate('monitoring')"> <span class="nav-icon">&#128065;</span> Monitoring</div>
+    <div class="nav-item"          data-v="thirdparty"  onclick="navigate('thirdparty')"> <span class="nav-icon">&#129309;</span> Third Party</div>
+    <div class="nav-item"          data-v="projects"    onclick="navigate('projects')">   <span class="nav-icon">&#128196;</span> Projects</div>
     <div class="nav-sec">Insights</div>
-    <div class="nav-item"        data-v="performance" onclick="navigate('performance')"><span class="nav-icon">&#128200;</span> Performance</div>
-    <div class="nav-sec">Admin</div>
-    <div class="nav-item"        data-v="settings"    onclick="navigate('settings')">   <span class="nav-icon">&#9881;</span> Settings</div>
+    <div class="nav-item"          data-v="performance" onclick="navigate('performance')"><span class="nav-icon">&#128200;</span> Performance</div>
+    <div class="nav-sec nav-admin">Admin</div>
+    <div class="nav-item nav-admin" data-v="settings"   onclick="navigate('settings')">  <span class="nav-icon">&#9881;</span> Settings</div>
     <div class="sidebar-foot">Auto-refresh: 60 s</div>
   </nav>
 
@@ -233,10 +255,11 @@ var YN        = ['','Y','N'];
 
 // ── State ─────────────────────────────────────────────────
 var state = {
-  view:   'dashboard',
-  user:   '__manager__',
-  c360:   null,
-  tab360: 'overview',
+  view:        'dashboard',
+  user:        '__manager__',
+  currentUser: null,
+  c360:        null,
+  tab360:      'overview',
   filters: {
     cases:      {owner:'',vertical:'',status:''},
     monitoring: {owner:'',status:''},
@@ -247,6 +270,49 @@ var state = {
 };
 var pendingSave = null;
 var autoTimer   = null;
+
+// ── Auth ──────────────────────────────────────────────────
+function doLogin() {
+  var email = document.getElementById('login-email').value.trim();
+  var pass  = document.getElementById('login-pass').value;
+  var err   = document.getElementById('login-err');
+  var btn   = document.getElementById('login-btn');
+  if (!email || !pass) { err.textContent = 'Email and password are required.'; return; }
+  btn.disabled = true; btn.textContent = 'Signing in…'; err.textContent = '';
+  google.script.run
+    .withSuccessHandler(function(u) {
+      btn.disabled = false; btn.textContent = 'Sign In';
+      if (!u || !u.success) { err.textContent = 'Invalid email or password.'; return; }
+      state.currentUser = u;
+      document.getElementById('login-screen').style.display = 'none';
+      _setupForUser(u);
+    })
+    .withFailureHandler(function(e) {
+      btn.disabled = false; btn.textContent = 'Sign In';
+      err.textContent = e.message || 'Login failed. Please try again.';
+    })
+    .verifyLogin(email, pass);
+}
+
+function _setupForUser(u) {
+  var isAdmin = u.role === 'admin';
+  document.getElementById('header-user').textContent = u.name + (isAdmin ? ' (Admin)' : '');
+  // Show/hide admin-only nav elements
+  document.querySelectorAll('.nav-admin').forEach(function(el) {
+    el.style.display = isAdmin ? '' : 'none';
+  });
+  // Lock user selector for members
+  var sel = document.getElementById('user-sel');
+  if (!isAdmin) {
+    sel.innerHTML = '<option value="' + u.sheet + '">' + u.name + '</option>';
+    sel.disabled = true;
+    state.user = u.sheet;
+  } else {
+    state.user = '__manager__';
+    sel.disabled = false;
+  }
+  navigate(isAdmin ? 'dashboard' : 'workspace');
+}
 
 // ── Utilities ─────────────────────────────────────────────
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -291,6 +357,10 @@ function setUpdated() { document.getElementById('updated-time').textContent = 'U
 
 // ── Navigation ────────────────────────────────────────────
 function navigate(viewId) {
+  // Block restricted views for members
+  if (state.currentUser && state.currentUser.role !== 'admin') {
+    if (viewId === 'dashboard' || viewId === 'settings') viewId = 'workspace';
+  }
   state.view = viewId;
   document.querySelectorAll('.nav-item').forEach(function(el) {
     var v = el.dataset.v;
@@ -858,7 +928,9 @@ function pCard(val,lbl) { return '<div class="perf-card"><div class="perf-val">'
 function noRec(cols) { return '<tr><td colspan="'+cols+'" style="text-align:center;color:#90a4ae;padding:16px;">No records</td></tr>'; }
 
 // ── Bootstrap ─────────────────────────────────────────────
-window.onload = function() { navigate('dashboard'); };
+window.onload = function() {
+  document.getElementById('login-email').focus();
+};
 </script>
 </body>
 </html>

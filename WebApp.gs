@@ -9,6 +9,17 @@
 //   Who has access: Anyone
 // ============================================================
 
+// ── AUTH: Validate login credentials ──────────────────────
+function verifyLogin(email, password) {
+  for (var i = 0; i < USERS.length; i++) {
+    var u = USERS[i];
+    if (u.email.toLowerCase() === String(email).toLowerCase() && u.password === password) {
+      return { success: true, name: u.name, email: u.email, role: u.role, sheet: u.sheet };
+    }
+  }
+  return { success: false };
+}
+
 function doGet(e) {
   return HtmlService.createHtmlOutputFromFile('Index')
     .setTitle('Onboarding Operations Platform')

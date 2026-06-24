@@ -114,3 +114,14 @@ var SHEET_NAMES = {
   SETTINGS:  'Settings',
   MEMBERS:   ['Harshita', 'Vamsi', 'Naveen', 'Vishwash']
 };
+
+// Users — email, password (change as needed), role, linked sheet
+// role: 'admin' → full access (Control Tower + Settings + all workspaces)
+// role: 'member' → own workspace only
+var USERS = [
+  { name: 'Ajay',     email: 'ajay.vunyale@recykal.com',         password: 'Ajay@Recykal24',     role: 'admin',  sheet: null },
+  { name: 'Harshita', email: 'harshita.shukla@recykal.com',      password: 'Harshita@Recykal24', role: 'member', sheet: 'Harshita' },
+  { name: 'Vamsi',    email: 'vamsi.ayila@recykal.com',           password: 'Vamsi@Recykal24',    role: 'member', sheet: 'Vamsi' },
+  { name: 'Naveen',   email: 'paravada.naveenranga@recykal.com', password: 'Naveen@Recykal24',   role: 'member', sheet: 'Naveen' },
+  { name: 'Vishwash', email: 'vishwash.tiwari@recykal.com',       password: 'Vishwash@Recykal24', role: 'admin',  sheet: 'Vishwash' }
+];
