@@ -757,7 +757,25 @@ function ownerFld(current) {
 }
 
 // ── OB Case form ──────────────────────────────────────────
-function newCase(owner)  { openCaseForm(owner,null); }
+function newCase(owner) {
+  openCaseForm(owner, null);
+  var inp = document.getElementById('f-caseId');
+  if (inp) {
+    inp.readOnly    = true;
+    inp.placeholder = 'Auto-generating…';
+    inp.style.color = '#90a4ae';
+    google.script.run
+      .withSuccessHandler(function(id) {
+        var el = document.getElementById('f-caseId');
+        if (el) { el.value = id; el.readOnly = true; el.style.color = '#212121'; el.placeholder = ''; }
+      })
+      .withFailureHandler(function() {
+        var el = document.getElementById('f-caseId');
+        if (el) { el.readOnly = false; el.placeholder = 'Enter Case ID'; el.style.color = ''; }
+      })
+      .getNextCaseId();
+  }
+}
 function editCase(owner,rowIndex) {
   google.script.run
     .withSuccessHandler(function(d){if(d)openCaseForm(owner,d.case);})
@@ -791,7 +809,11 @@ function openCaseForm(owner,c) {
   openModal((c?'Edit':'New')+' OB Case',body,function(){
     var ow=gv('f-owner');
     if(!ow){alert('Please select an owner.');return;}
-    if(!gv('f-caseId')){alert('Case ID is required.');return;}
+    if(!gv('f-caseId')){
+      var cInp=document.getElementById('f-caseId');
+      alert(cInp&&cInp.readOnly?'Case ID is still being generated — please wait a moment.':'Case ID is required.');
+      return;
+    }
     modalSaving();
     google.script.run
       .withSuccessHandler(afterSave)

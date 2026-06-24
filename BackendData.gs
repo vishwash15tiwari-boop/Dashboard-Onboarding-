@@ -296,3 +296,25 @@ function saveTaskRecord(ownerName, rowIndex, data) {
   SpreadsheetApp.flush();
   return { rowIndex: target, success: true };
 }
+
+// ── READ: Generate next sequential Case ID ─────────────────
+function getNextCaseId() {
+  var ss   = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var year = new Date().getFullYear();
+  var pref = 'OB-' + year + '-';
+  var max  = 0;
+  SHEET_NAMES.MEMBERS.forEach(function(name) {
+    var sh = ss.getSheetByName(name);
+    if (!sh) return;
+    sh.getRange(8, 1, 20, 1).getValues().forEach(function(row) {
+      var id = String(row[0] || '');
+      if (id.indexOf(pref) === 0) {
+        var n = parseInt(id.substring(pref.length), 10);
+        if (!isNaN(n) && n > max) max = n;
+      }
+    });
+  });
+  var next   = max + 1;
+  var padded = (next < 10 ? '000' : next < 100 ? '00' : next < 1000 ? '0' : '') + next;
+  return pref + padded;
+}
