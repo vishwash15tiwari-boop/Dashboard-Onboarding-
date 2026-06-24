@@ -327,15 +327,21 @@ function _setupForUser(u) {
   document.querySelectorAll('.nav-admin').forEach(function(el) {
     el.style.display = isAdmin ? '' : 'none';
   });
-  // Lock user selector for members
+  // Lock user selector for members; default admins to their own sheet
   var sel = document.getElementById('user-sel');
   if (!isAdmin) {
     sel.innerHTML = '<option value="' + u.sheet + '">' + u.name + '</option>';
     sel.disabled = true;
     state.user = u.sheet;
   } else {
-    state.user = '__manager__';
     sel.disabled = false;
+    if (u.sheet) {
+      sel.value  = u.sheet;
+      state.user = u.sheet;
+    } else {
+      sel.value  = '__manager__';
+      state.user = '__manager__';
+    }
   }
   navigate(isAdmin ? 'dashboard' : 'workspace');
 }
