@@ -14,9 +14,10 @@ function verifyLogin(email, password) {
   try {
     var users = (typeof USERS !== 'undefined') ? USERS : [];
     var emailLc = String(email || '').toLowerCase().trim();
+    var passTr  = String(password || '').trim();
     for (var i = 0; i < users.length; i++) {
       var u = users[i];
-      if (u.email.toLowerCase() === emailLc && u.password === password) {
+      if (u.email.toLowerCase() === emailLc && u.password === passTr) {
         return { success: true, name: u.name, email: u.email, role: u.role, sheet: u.sheet || null };
       }
     }

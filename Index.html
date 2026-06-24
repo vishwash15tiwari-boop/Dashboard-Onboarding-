@@ -274,7 +274,7 @@ var autoTimer   = null;
 // ── Auth ──────────────────────────────────────────────────
 function doLogin() {
   var email = document.getElementById('login-email').value.trim();
-  var pass  = document.getElementById('login-pass').value;
+  var pass  = document.getElementById('login-pass').value.trim();
   var err   = document.getElementById('login-err');
   var btn   = document.getElementById('login-btn');
   if (!email || !pass) { err.textContent = 'Email and password are required.'; return; }
