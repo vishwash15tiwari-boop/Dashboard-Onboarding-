@@ -795,25 +795,30 @@ function editCase(owner,rowIndex) {
 }
 function openCaseForm(owner,c) {
   var d=c||{};
-  var docPctDisplay=d.docPct!==undefined ? Math.round(d.docPct*100) : '';
+  var docPctDisplay=d.docPct!==undefined ? Math.round(d.docPct*100) : 0;
   var body='<div class="form-grid">'+
     '<div class="form-row span2"><label class="form-label">Owner</label>'+ownerFld(owner)+'</div>'+
     frow('Case ID',            finp('f-caseId',d.caseId))+
     frow('Vendor Name',        finp('f-vendor',d.vendor))+
     '<div class="form-row span2"><label class="form-label">Vertical</label>'+fselInp('f-vertical',VERTICALS,d.vertical)+'</div>'+
     frow('Date Initiated',     fdate('f-dateInit',d.dateInit))+
-    frow('Doc % Collected (0–100)', fnum('f-docPct',docPctDisplay,0,100))+
+    '<div class="form-row span2"><label class="form-label">Completion % <span style="font-size:9px;color:#1a237e;font-weight:400;text-transform:none;">(auto-calculated from stages)</span></label>'+
+    '<div style="display:flex;align-items:center;gap:10px;">'+
+    '<input class="form-inp" id="f-docPct" type="number" value="'+docPctDisplay+'" readonly style="width:68px;background:#e8eaf6;font-weight:700;color:#1a237e;cursor:default;" autocomplete="off">'+
+    '<div style="flex:1;height:10px;background:#e0e0e0;border-radius:5px;overflow:hidden;"><div id="case-prog-bar" style="height:100%;background:#1a237e;width:'+docPctDisplay+'%;transition:width .3s;"></div></div>'+
+    '<span id="case-prog-pct" style="font-size:12px;font-weight:700;color:#1a237e;min-width:34px;">'+docPctDisplay+'%</span>'+
+    '</div></div>'+
     frow('Doc Validation Y/N', fselInp('f-docValid',YN,d.docValid))+
     frow('Doc Validation Date',fdate('f-docVDate',d.docValidDate))+
-    frow('Stage 2 Y/N',        fselInp('f-stage2',YN,d.stage2))+
-    frow('Stage 2 Date',       fdate('f-stage2Date',d.stage2Date))+
-    frow('Stage 3 Y/N',        fselInp('f-stage3',YN,d.stage3))+
-    frow('Stage 3 Date',       fdate('f-stage3Date',d.stage3Date))+
-    frow('Stage 4 Y/N',        fselInp('f-stage4',YN,d.stage4))+
-    frow('Stage 4 Date',       fdate('f-stage4Date',d.stage4Date))+
+    '<div class="form-row" id="row-stage2"><label class="form-label"><span id="lbl-stage2">Stage 2</span> Y/N</label>'+fselInp('f-stage2',YN,d.stage2)+'</div>'+
+    '<div class="form-row" id="row-stage2d"><label class="form-label"><span id="lbl-stage2d">Stage 2</span> Date</label>'+fdate('f-stage2Date',d.stage2Date)+'</div>'+
+    '<div class="form-row" id="row-stage3"><label class="form-label"><span id="lbl-stage3">Stage 3</span> Y/N</label>'+fselInp('f-stage3',YN,d.stage3)+'</div>'+
+    '<div class="form-row" id="row-stage3d"><label class="form-label"><span id="lbl-stage3d">Stage 3</span> Date</label>'+fdate('f-stage3Date',d.stage3Date)+'</div>'+
+    '<div class="form-row" id="row-stage4"><label class="form-label"><span id="lbl-stage4">Stage 4</span> Y/N</label>'+fselInp('f-stage4',YN,d.stage4)+'</div>'+
+    '<div class="form-row" id="row-stage4d"><label class="form-label"><span id="lbl-stage4d">Stage 4</span> Date</label>'+fdate('f-stage4Date',d.stage4Date)+'</div>'+
     frow('Decision',           finp('f-decision',d.decision))+
-    frow('MOM Y/N',            fselInp('f-mom',YN,d.mom))+
-    frow('MOM Date',           fdate('f-momDate',d.momDate))+
+    '<div class="form-row" id="row-mom"><label class="form-label">MOM Y/N</label>'+fselInp('f-mom',YN,d.mom)+'</div>'+
+    '<div class="form-row" id="row-momd"><label class="form-label">MOM Date</label>'+fdate('f-momDate',d.momDate)+'</div>'+
     frow('L1 Approval Y/N',    fselInp('f-l1Approval',YN,d.l1Approval))+
     frow('L1 Approval Date',   fdate('f-l1Date',d.l1Date))+
     '</div>';
@@ -840,6 +845,52 @@ function openCaseForm(owner,c) {
         l1Approval:gv('f-l1Approval'),l1Date:gv('f-l1Date')
       });
   });
+  _initCaseFormListeners();
+}
+
+// ── Stage weight auto-calculation ────────────────────────
+var _STAGE_LBLS = {
+  'Marketplace':          {s2:'Verification Report',              s3:'V-KYC & GST Portal Verification', s4:'Committee'},
+  'Open Marketplace':     {s2:'Doc sent to 3rd Party for Verif.', s3:'Rating Report Received',          s4:'Review the Rating Report'},
+  'EPR & Sustainability': {s2:'Verification Report',              s3:'V-KYC & GST Portal Verification', s4:'Committee'}
+};
+var _STAGE_WTS = {
+  'Marketplace':          {docValid:15, stage2:30, stage3:25, stage4:20, mom:5,  l1:5},
+  'Open Marketplace':     {docValid:15, stage2:15, stage3:30, stage4:30, mom:0,  l1:10},
+  'EPR & Sustainability': {docValid:15, stage2:30, stage3:25, stage4:20, mom:5,  l1:5}
+};
+function _initCaseFormListeners() {
+  _updateCaseStageUI();
+  ['f-vertical','f-docValid','f-stage2','f-stage3','f-stage4','f-mom','f-l1Approval'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.addEventListener('change', _updateCaseStageUI);
+  });
+}
+function _updateCaseStageUI() {
+  var v  = (document.getElementById('f-vertical')||{}).value || '';
+  var lb = _STAGE_LBLS[v] || {s2:'Stage 2', s3:'Stage 3', s4:'Stage 4'};
+  var wt = _STAGE_WTS[v]  || {docValid:0, stage2:0, stage3:0, stage4:0, mom:0, l1:0};
+  var isOMP = v === 'Open Marketplace';
+  // Update stage labels
+  ['stage2','stage3','stage4'].forEach(function(k, i){
+    var lbl = [lb.s2, lb.s3, lb.s4][i];
+    ['lbl-'+k, 'lbl-'+k+'d'].forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent=lbl; });
+  });
+  // Show/hide MOM rows (not in Open Marketplace)
+  ['row-mom','row-momd'].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display=isOMP?'none':''; });
+  // Calculate %
+  function yn(id){ var el=document.getElementById(id); return el&&el.value==='Y'; }
+  var pct = 0;
+  if(yn('f-docValid'))               pct += wt.docValid;
+  if(yn('f-stage2'))                 pct += wt.stage2;
+  if(yn('f-stage3'))                 pct += wt.stage3;
+  if(yn('f-stage4'))                 pct += wt.stage4;
+  if(!isOMP && yn('f-mom'))          pct += wt.mom;
+  if(yn('f-l1Approval'))             pct += wt.l1;
+  var barClr = pct===100 ? '#1b5e20' : pct>=50 ? '#1a237e' : '#e65100';
+  var inp=document.getElementById('f-docPct');    if(inp)  inp.value=pct;
+  var bar=document.getElementById('case-prog-bar'); if(bar){ bar.style.width=pct+'%'; bar.style.background=barClr; }
+  var lbl2=document.getElementById('case-prog-pct'); if(lbl2){ lbl2.textContent=pct+'%'; lbl2.style.color=barClr; }
 }
 
 // ── Monitoring form ───────────────────────────────────────
