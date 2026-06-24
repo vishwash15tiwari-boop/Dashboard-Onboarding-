@@ -199,6 +199,7 @@
     <span id="header-user" style="font-size:11px;opacity:.75;"></span>
     <span id="updated-time"></span>
     <button class="refresh-btn" id="refresh-btn" onclick="onRefresh()">&#8635; Refresh</button>
+    <button class="refresh-btn" id="logout-btn" onclick="doLogout()" style="background:rgba(255,80,80,.25);border-color:rgba(255,120,120,.4);">&#x23FB; Logout</button>
   </div>
 </header>
 
@@ -307,6 +308,16 @@ function doLogin() {
         : msg;
     })
     .verifyLogin(email, pass);
+}
+
+function doLogout() {
+  state.currentUser = null;
+  document.getElementById('header-user').textContent = '';
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-err').textContent = '';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-email').focus();
 }
 
 function _setupForUser(u) {
