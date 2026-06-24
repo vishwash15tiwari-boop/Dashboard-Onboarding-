@@ -393,6 +393,8 @@ function navigate(viewId) {
   if (state.currentUser && state.currentUser.role !== 'admin') {
     if (viewId === 'dashboard' || viewId === 'settings') viewId = 'workspace';
   }
+  // Manager account (Ajay) has no personal sheet — redirect workspace → dashboard
+  if (viewId === 'workspace' && state.user === '__manager__') viewId = 'dashboard';
   state.view = viewId;
   document.querySelectorAll('.nav-item').forEach(function(el) {
     var v = el.dataset.v;
@@ -405,7 +407,12 @@ function navigate(viewId) {
 function onUserChange() {
   state.user = document.getElementById('user-sel').value;
   state.data = {};
-  loadView(state.view);
+  // If switching to manager view while on workspace, go to Control Tower instead
+  if (state.user === '__manager__' && state.view === 'workspace') {
+    navigate('dashboard');
+  } else {
+    loadView(state.view);
+  }
 }
 
 function onRefresh() { state.data = {}; loadView(state.view); }
@@ -445,7 +452,7 @@ function loadView(viewId) {
   }
   var r = google.script.run.withSuccessHandler(ok).withFailureHandler(fail);
   if      (viewId==='dashboard')   r.getDashboardData();
-  else if (viewId==='workspace')   r.getWorkspaceData(state.user==='__manager__'?'Harshita':state.user);
+  else if (viewId==='workspace')   r.getWorkspaceData(state.user);
   else if (viewId==='cases')       r.getCasesListData();
   else if (viewId==='case360')     r.getCase360Data(state.c360.owner,state.c360.row);
   else if (viewId==='monitoring')  r.getMonitoringListData();
