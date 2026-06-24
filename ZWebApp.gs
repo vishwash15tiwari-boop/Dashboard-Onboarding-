@@ -1,6 +1,6 @@
 // ============================================================
 // ONBOARDING OPERATIONS PLATFORM
-// WebApp.gs — Serves the HTML dashboard; getDashboardData()
+// ZWebApp.gs — Serves the HTML dashboard; getDashboardData()
 //             is called client-side via google.script.run
 //
 // Deploy: Apps Script → Deploy → New deployment
