@@ -41,8 +41,16 @@ var CLR = {
 
 var MANAGER_NAME = 'Ajay';
 
-// Team member configuration
+// Team member configuration (includes Ajay for personal sheet creation;
+// SHEET_NAMES.MEMBERS stays as 4 so Ajay is excluded from team KPIs)
 var TEAM = [
+  {
+    name:       'Ajay',
+    role:       'Manager',
+    vertical:   'All (oversight)',
+    fallback:   '—',
+    thirdParty: '—'
+  },
   {
     name:       'Harshita',
     role:       'Executive',
@@ -119,7 +127,7 @@ var SHEET_NAMES = {
 // role: 'admin' → full access (Control Tower + Settings + all workspaces)
 // role: 'member' → own workspace only
 var USERS = [
-  { name: 'Ajay',     email: 'ajay.vunyale@recykal.com',         password: 'Ajay2024',     role: 'admin',  sheet: null },
+  { name: 'Ajay',     email: 'ajay.vunyale@recykal.com',         password: 'Ajay2024',     role: 'admin',  sheet: 'Ajay' },
   { name: 'Harshita', email: 'harshita.shukla@recykal.com',      password: 'Harshita2024', role: 'member', sheet: 'Harshita' },
   { name: 'Vamsi',    email: 'vamsi.ayila@recykal.com',           password: 'Vamsi2024',    role: 'member', sheet: 'Vamsi' },
   { name: 'Naveen',   email: 'paravada.naveenranga@recykal.com', password: 'Naveen2024',   role: 'member', sheet: 'Naveen' },
