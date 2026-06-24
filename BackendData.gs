@@ -41,7 +41,18 @@ function getCasesListData() {
 function getWorkspaceData(memberName) {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sh = ss.getSheetByName(memberName);
-  if (!sh) return null;
+
+  // Auto-create sheet on first access if it doesn't exist yet
+  if (!sh) {
+    var cfg = null;
+    for (var i = 0; i < TEAM.length; i++) {
+      if (TEAM[i].name === memberName) { cfg = TEAM[i]; break; }
+    }
+    if (!cfg) return null;
+    setupTeamSheet(ss, cfg);
+    sh = ss.getSheetByName(memberName);
+    if (!sh) return null;
+  }
 
   var cases = [];
   sh.getRange(8, 1, 20, 23).getValues().forEach(function(row, idx) {
