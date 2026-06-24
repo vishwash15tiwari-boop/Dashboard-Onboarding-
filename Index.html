@@ -279,17 +279,32 @@ function doLogin() {
   var btn   = document.getElementById('login-btn');
   if (!email || !pass) { err.textContent = 'Email and password are required.'; return; }
   btn.disabled = true; btn.textContent = 'Signing in…'; err.textContent = '';
+
+  // Safety timeout — reset button if GAS never responds
+  var loginTimer = setTimeout(function() {
+    btn.disabled = false; btn.textContent = 'Sign In';
+    err.textContent = 'No response from server. Ensure all GAS files are saved, then retry.';
+  }, 25000);
+
   google.script.run
     .withSuccessHandler(function(u) {
+      clearTimeout(loginTimer);
       btn.disabled = false; btn.textContent = 'Sign In';
-      if (!u || !u.success) { err.textContent = 'Invalid email or password.'; return; }
+      if (!u || !u.success) {
+        err.textContent = u && u.error ? 'Server error: ' + u.error : 'Invalid email or password.';
+        return;
+      }
       state.currentUser = u;
       document.getElementById('login-screen').style.display = 'none';
       _setupForUser(u);
     })
     .withFailureHandler(function(e) {
+      clearTimeout(loginTimer);
       btn.disabled = false; btn.textContent = 'Sign In';
-      err.textContent = e.message || 'Login failed. Please try again.';
+      var msg = (e && (e.message || String(e))) || 'Login failed.';
+      err.textContent = msg.indexOf('not found') > -1
+        ? 'Server function missing — copy WebApp.gs to your GAS project and save.'
+        : msg;
     })
     .verifyLogin(email, pass);
 }

@@ -11,13 +11,19 @@
 
 // ── AUTH: Validate login credentials ──────────────────────
 function verifyLogin(email, password) {
-  for (var i = 0; i < USERS.length; i++) {
-    var u = USERS[i];
-    if (u.email.toLowerCase() === String(email).toLowerCase() && u.password === password) {
-      return { success: true, name: u.name, email: u.email, role: u.role, sheet: u.sheet };
+  try {
+    var users = (typeof USERS !== 'undefined') ? USERS : [];
+    var emailLc = String(email || '').toLowerCase().trim();
+    for (var i = 0; i < users.length; i++) {
+      var u = users[i];
+      if (u.email.toLowerCase() === emailLc && u.password === password) {
+        return { success: true, name: u.name, email: u.email, role: u.role, sheet: u.sheet || null };
+      }
     }
+    return { success: false };
+  } catch (e) {
+    return { success: false, error: e.message };
   }
-  return { success: false };
 }
 
 function doGet(e) {
