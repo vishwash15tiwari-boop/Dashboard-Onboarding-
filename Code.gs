@@ -30,7 +30,7 @@ function runSetupPlatform() {
   ui.alert(
     '✅ Platform Ready',
     'All sheets have been created:\n\n' +
-    '• Control Tower — live KPI dashboard\n' +
+    '• Dashboard — live KPI dashboard\n' +
     '• Settings — team, verticals, stage weights\n' +
     '• Harshita / Vamsi / Naveen / Vishwash — individual trackers\n\n' +
     'All TAT, progress %, and status columns are auto-calculated.',
@@ -49,7 +49,7 @@ function showAbout() {
     'Version 1.0\n\n' +
     'Features:\n' +
     '• Auto-calculated TAT Days, TAT Status, % Done, Case Status\n' +
-    '• Real-time Control Tower dashboard\n' +
+    '• Real-time Dashboard dashboard\n' +
     '• Team performance summary\n' +
     '• Pipeline view by vertical\n' +
     '• Alerts for breaches, pending docs, open tasks\n' +

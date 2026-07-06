@@ -1,6 +1,6 @@
 // ============================================================
 // ONBOARDING OPERATIONS PLATFORM
-// Dashboard.gs — Control Tower sheet
+// Dashboard.gs — Dashboard sheet
 //
 // Layout:
 //   Row 1     : Platform title (merged B–L)

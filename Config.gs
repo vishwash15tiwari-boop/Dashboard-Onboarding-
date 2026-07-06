@@ -118,13 +118,13 @@ var TASK_STATUS        = ['Open', 'Overdue', 'Closed'];
 
 // Sheet names
 var SHEET_NAMES = {
-  DASHBOARD: 'Control Tower',
+  DASHBOARD: 'Dashboard',
   SETTINGS:  'Settings',
   MEMBERS:   ['Harshita', 'Vamsi', 'Naveen', 'Vishwash']
 };
 
 // Users — email, password (change as needed), role, linked sheet
-// role: 'admin' → full access (Control Tower + Settings + all workspaces)
+// role: 'admin' → full access (Dashboard + Settings + all workspaces)
 // role: 'member' → own workspace only
 var USERS = [
   { name: 'Ajay',     email: 'ajay.vunyale@recykal.com',         password: 'Ajay2024',     role: 'admin',  sheet: 'Ajay' },

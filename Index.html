@@ -404,7 +404,7 @@
       </select>
     </div>
     <div class="nav-sec">Overview</div>
-    <div class="nav-item nav-admin" data-v="dashboard"   onclick="navigate('dashboard')">  <span class="nav-icon">&#128202;</span> Control Tower</div>
+    <div class="nav-item nav-admin" data-v="dashboard"   onclick="navigate('dashboard')">  <span class="nav-icon">&#128202;</span> Dashboard</div>
     <div class="nav-item"          data-v="workspace"   onclick="navigate('workspace')">  <span class="nav-icon">&#128101;</span> My Workspace</div>
     <div class="nav-sec">Operations</div>
     <div class="nav-item"          data-v="cases"       onclick="navigate('cases')">      <span class="nav-icon">&#128203;</span> OB Cases</div>
@@ -743,7 +743,7 @@ function navigate(viewId) {
 function onUserChange() {
   state.user = document.getElementById('user-sel').value;
   state.data = {};
-  // If switching to manager view while on workspace, go to Control Tower instead
+  // If switching to manager view while on workspace, go to Dashboard instead
   if (state.user === '__manager__' && state.view === 'workspace') {
     navigate('dashboard');
   } else {
@@ -889,7 +889,7 @@ function defaultOwner() { return state.currentUser ? (state.currentUser.sheet||n
 function cmdkActions() {
   var isAdmin = state.currentUser && state.currentUser.role==='admin';
   var acts=[
-    { ico:'&#128202;', lbl:'Go to Control Tower',      admin:true,  run:function(){navigate('dashboard');} },
+    { ico:'&#128202;', lbl:'Go to Dashboard',           admin:true,  run:function(){navigate('dashboard');} },
     { ico:'&#128101;', lbl:'Go to My Workspace',                    run:function(){navigate('workspace');} },
     { ico:'&#128203;', lbl:'Go to OB Cases',                        run:function(){navigate('cases');} },
     { ico:'&#128065;', lbl:'Go to Monitoring',                      run:function(){navigate('monitoring');} },
@@ -1166,7 +1166,7 @@ function renderDashboard(data) {
 
   setMain(
     viewTools()+
-    '<div class="page-title">&#128202; Control Tower</div>'+
+    '<div class="page-title">&#128202; Dashboard</div>'+
     tilesH+
     rollH+
     sec('&#128101; CASES BY MEMBER',memberChartH,false)+
