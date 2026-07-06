@@ -308,6 +308,27 @@
     .att-lbl { font-weight: 600; color: var(--ink); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .att-clear { padding: 20px; text-align: center; font-size: 12px; color: var(--tag-green-ink); background: var(--tag-green-bg); border-radius: 10px; font-weight: 600; }
 
+    /* ── Notification bell ──────────────────────────────────── */
+    .notif-bell { position: relative; cursor: pointer; background: transparent; border: none; font-size: 15px; padding: 4px 8px; border-radius: 6px; color: var(--ink-2); transition: background .12s; line-height: 1; }
+    .notif-bell:hover { background: var(--hover); color: var(--ink); }
+    .nb-badge { position: absolute; top: -1px; right: -1px; background: var(--crit); color: #fff; font-size: 9px; font-weight: 700; border-radius: 10px; padding: 1px 5px; min-width: 16px; text-align: center; display: none; line-height: 1.7; }
+    .nb-badge.on { display: block; }
+
+    /* ── Trend charts ───────────────────────────────────────── */
+    .trend-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .trend-card { background: var(--surface); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 14px 18px 10px; }
+    .trend-lbl { font-size: 9.5px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; }
+    .trend-num { font-size: 22px; font-weight: 700; letter-spacing: -.4px; margin-bottom: 8px; }
+
+    /* ── Activity Log ───────────────────────────────────────── */
+    .al-wrap { background: var(--surface); border-radius: 10px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .al-row { display: flex; align-items: flex-start; gap: 12px; padding: 9px 15px; border-bottom: 1px solid var(--line); font-size: 11.5px; }
+    .al-row:last-child { border-bottom: none; }
+    .al-ts { color: var(--ink-3); font-size: 10px; flex-shrink: 0; width: 140px; font-variant-numeric: tabular-nums; padding-top: 2px; }
+    .al-user { font-weight: 700; color: var(--ink); flex-shrink: 0; width: 78px; }
+    .al-action { color: var(--ink); flex-shrink: 0; width: 175px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .al-detail { color: var(--ink-2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+
     /* ── Print / PDF ────────────────────────────────────── */
     @media print {
       body { height: auto; overflow: visible; background: #fff; }
@@ -362,6 +383,7 @@
   </div>
   <div class="header-right">
     <button class="refresh-btn" id="search-btn" onclick="openCmdk()">&#128269; Search<span class="kbd">Ctrl K</span></button>
+    <button class="notif-bell" id="notif-btn" onclick="navigate('activitylog')" title="Activity Log" style="display:none;">&#128276;<span id="nb-badge" class="nb-badge"></span></button>
     <span id="header-user" class="user-chip"></span>
     <span id="updated-time"></span>
     <button class="refresh-btn" id="refresh-btn" onclick="onRefresh()">&#8635; Refresh</button>
@@ -390,7 +412,9 @@
     <div class="nav-item"          data-v="thirdparty"  onclick="navigate('thirdparty')"> <span class="nav-icon">&#129309;</span> Third Party</div>
     <div class="nav-item"          data-v="projects"    onclick="navigate('projects')">   <span class="nav-icon">&#128196;</span> Projects</div>
     <div class="nav-sec">Insights</div>
-    <div class="nav-item"          data-v="performance" onclick="navigate('performance')"><span class="nav-icon">&#128200;</span> Performance</div>
+    <div class="nav-item"           data-v="performance"  onclick="navigate('performance')"> <span class="nav-icon">&#128200;</span> Performance</div>
+    <div class="nav-item"           data-v="trends"        onclick="navigate('trends')">      <span class="nav-icon">&#128202;</span> Trends</div>
+    <div class="nav-item nav-admin" data-v="activitylog"   onclick="navigate('activitylog')"><span class="nav-icon">&#128220;</span> Activity Log</div>
     <div class="nav-sec nav-admin">Admin</div>
     <div class="nav-item nav-admin" data-v="settings"   onclick="navigate('settings')">  <span class="nav-icon">&#9881;</span> Settings</div>
     <div class="sidebar-foot">&#9889; Auto-refresh 60 s</div>
@@ -419,6 +443,31 @@
     <div class="modal-foot">
       <button class="btn-cancel" onclick="closeModal()">Cancel</button>
       <button class="btn-save"   id="modal-save" onclick="runSave()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Keyboard shortcuts overlay -->
+<div id="shortcuts-overlay" onclick="if(event.target===this)closeShortcuts()" style="display:none;position:fixed;inset:0;background:rgba(15,15,15,.45);backdrop-filter:blur(2px);z-index:350;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border-radius:12px;padding:24px 28px;width:min(460px,94vw);max-height:85vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:popIn .22s cubic-bezier(.16,1,.3,1);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <span style="font-size:14px;font-weight:700;color:var(--ink);">&#9875; Keyboard Shortcuts</span>
+      <button onclick="closeShortcuts()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ink-3);padding:2px 7px;border-radius:5px;transition:background .12s;">&#215;</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:5px;font-size:12.5px;">
+      <div style="font-size:9.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;padding:4px 0 6px;border-bottom:1px solid var(--line);">Navigation</div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:var(--ink-2);">Open command palette</span><span class="kbd" style="font-size:10px;">Ctrl K</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:var(--ink-2);">Keyboard shortcuts</span><span class="kbd" style="font-size:10px;">?</span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:var(--ink-2);">Close overlay / modal</span><span class="kbd" style="font-size:10px;">Esc</span></div>
+      <div style="font-size:9.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;padding:10px 0 6px;border-bottom:1px solid var(--line);">Command Palette</div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:var(--ink-2);">Move up / down</span><span><span class="kbd" style="font-size:10px;">&#8593;</span> <span class="kbd" style="font-size:10px;">&#8595;</span></span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:var(--ink-2);">Open selected item</span><span class="kbd" style="font-size:10px;">Enter</span></div>
+      <div style="font-size:9.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;padding:10px 0 6px;border-bottom:1px solid var(--line);">Tips</div>
+      <div style="padding:4px 0;color:var(--ink-2);">Click any Case ID row to open Case 360&deg; detail view</div>
+      <div style="padding:4px 0;color:var(--ink-2);">Column headers with arrows are sortable &mdash; click to toggle order</div>
+      <div style="padding:4px 0;color:var(--ink-2);">Y/N pill dropdowns save inline instantly &mdash; no form needed</div>
+      <div style="padding:4px 0;color:var(--ink-2);">Export CSV downloads any list view for offline analysis</div>
+      <div style="padding:4px 0;color:var(--ink-2);">Admins: run snapshotDailyKPIs() in GAS to populate Trends charts</div>
     </div>
   </div>
 </div>
@@ -506,6 +555,7 @@ function _setupForUser(u) {
   document.querySelectorAll('.nav-admin').forEach(function(el) {
     el.style.display = isAdmin ? '' : 'none';
   });
+  document.getElementById('notif-btn').style.display = isAdmin ? '' : 'none';
   // Lock user selector for members; default admins to their own sheet
   var sel = document.getElementById('user-sel');
   if (!isAdmin) {
@@ -582,7 +632,7 @@ function quickSet(section,owner,rowIndex,field,el) {
       el.disabled=false;
       toast((e&&e.message)||'Save failed',true);
     })
-    .quickUpdateField(section,owner,rowIndex,field,el.value);
+    .quickUpdateField(section,owner,rowIndex,field,el.value,(state.currentUser&&state.currentUser.name)||'');
 }
 // Silently re-fetch the current view so auto-calculated statuses update
 function _bgRefresh() {
@@ -597,7 +647,9 @@ function _bgRefresh() {
   else if (viewId==='projects')   r.getProjectsData();
   else if (viewId==='cases')      r.getCasesListData();
   else if (viewId==='case360')    r.getCase360Data(state.c360.owner,state.c360.row);
-  else if (viewId==='dashboard')  r.getDashboardData();
+  else if (viewId==='dashboard')   r.getDashboardData();
+  else if (viewId==='activitylog') r.getActivityLogData();
+  else if (viewId==='trends')      r.getTrendsData();
   else state.data[k]=null;
 }
 
@@ -674,7 +726,7 @@ function setUpdated() { document.getElementById('updated-time').textContent = 'U
 function navigate(viewId) {
   // Block restricted views for members
   if (state.currentUser && state.currentUser.role !== 'admin') {
-    if (viewId === 'dashboard' || viewId === 'settings') viewId = 'workspace';
+    if (viewId === 'dashboard' || viewId === 'settings' || viewId === 'activitylog') viewId = 'workspace';
   }
   // Manager account (Ajay) has no personal sheet — redirect workspace → dashboard
   if (viewId === 'workspace' && state.user === '__manager__') viewId = 'dashboard';
@@ -743,8 +795,10 @@ function loadView(viewId) {
   else if (viewId==='monitoring')  r.getMonitoringListData();
   else if (viewId==='thirdparty')  r.getThirdPartyListData();
   else if (viewId==='projects')    r.getProjectsData();
-  else if (viewId==='performance') r.getPerformanceData();
-  else if (viewId==='settings')    r.getSettingsData();
+  else if (viewId==='performance')  r.getPerformanceData();
+  else if (viewId==='settings')     r.getSettingsData();
+  else if (viewId==='activitylog')  r.getActivityLogData();
+  else if (viewId==='trends')       r.getTrendsData();
 }
 
 function renderView(v,d) {
@@ -755,8 +809,10 @@ function renderView(v,d) {
   else if (v==='monitoring')  renderMonitoring(d);
   else if (v==='thirdparty')  renderThirdParty(d);
   else if (v==='projects')    renderProjects(d);
-  else if (v==='performance') renderPerformance(d);
-  else if (v==='settings')    renderSettings(d);
+  else if (v==='performance')  renderPerformance(d);
+  else if (v==='settings')     renderSettings(d);
+  else if (v==='activitylog')  renderActivityLog(d);
+  else if (v==='trends')       renderTrends(d);
 }
 
 // ── Filter helpers ────────────────────────────────────────
@@ -841,6 +897,9 @@ function cmdkActions() {
     { ico:'&#128196;', lbl:'Go to Projects',                        run:function(){navigate('projects');} },
     { ico:'&#128200;', lbl:'Go to Performance',                     run:function(){navigate('performance');} },
     { ico:'&#9881;',   lbl:'Go to Settings',           admin:true,  run:function(){navigate('settings');} },
+    { ico:'&#128202;', lbl:'Go to Trends',                          run:function(){navigate('trends');} },
+    { ico:'&#128220;', lbl:'Go to Activity Log',        admin:true,  run:function(){navigate('activitylog');} },
+    { ico:'&#9875;',   lbl:'Keyboard shortcuts',                    run:openShortcuts },
     { ico:'&#10133;',  lbl:'New OB Case',                           run:function(){newCase(defaultOwner());} },
     { ico:'&#10133;',  lbl:'New Monitoring Record',                 run:function(){newMonitoring(defaultOwner());} },
     { ico:'&#10133;',  lbl:'New Third Party Record',                run:function(){newThirdParty(defaultOwner());} },
@@ -1009,7 +1068,16 @@ function projectsBoard(fil) {
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────
+function _updateBell(alerts) {
+  var total = (alerts.breach||0) + (alerts.overdue||0);
+  var badge = document.getElementById('nb-badge');
+  if (!badge) return;
+  badge.textContent = total > 0 ? total : '';
+  badge.classList.toggle('on', total > 0);
+}
+
 function renderDashboard(data) {
+  _updateBell(data.alerts || {});
   var kpi=data.kpi||{};
   function tile(ico,icoBg,v,l){return '<div class="tile"><div class="tile-ico" style="background:'+icoBg+'">'+ico+'</div><div class="tile-val">'+fmt(v)+'</div><div class="tile-lbl">'+l+'</div></div>';}
   var tilesH='<div class="tiles">'+
@@ -1471,7 +1539,7 @@ function openCaseForm(owner,c) {
         stage4:gv('f-stage4'),stage4Date:gv('f-stage4Date'),
         decision:gv('f-decision'),mom:gv('f-mom'),momDate:gv('f-momDate'),
         l1Approval:gv('f-l1Approval'),l1Date:gv('f-l1Date')
-      });
+      },(state.currentUser&&state.currentUser.name)||'');
   });
   _initCaseFormListeners();
 }
@@ -1560,7 +1628,7 @@ function openMonitoringForm(owner,m) {
         followUp:gv('f-followUp'),followUpDate:gv('f-fuDate'),
         outcome:gv('f-outcome'),presentDate:gv('f-presDate'),
         remarks:gv('f-remarks')
-      });
+      },(state.currentUser&&state.currentUser.name)||'');
   });
 }
 
@@ -1600,7 +1668,7 @@ function openThirdPartyForm(owner,t) {
         assignedDate:gv('f-assignedDate'),reportRcvd:gv('f-reportRcvd'),reportDate:gv('f-reportDate'),
         billRcvd:gv('f-billRcvd'),billValid:gv('f-billValid'),billDate:gv('f-billDate'),
         remarks:gv('f-remarks')
-      });
+      },(state.currentUser&&state.currentUser.name)||'');
   });
 }
 
@@ -1635,7 +1703,7 @@ function openTaskForm(owner,t) {
         description:gv('f-desc'),category:gv('f-category'),
         dateAssigned:gv('f-dateAssigned'),targetDate:gv('f-targetDate'),actualDate:gv('f-actualDate'),
         remarks:gv('f-remarks')
-      });
+      },(state.currentUser&&state.currentUser.name)||'');
   });
 }
 
@@ -1654,6 +1722,107 @@ function sumCard(val,lbl,color) { return '<div class="sum-card"><div class="sum-
 function pCard(val,lbl) { return '<div class="perf-card"><div class="perf-val">'+fmt(val)+'</div><div class="perf-lbl">'+lbl+'</div></div>'; }
 function noRec(cols) { return '<tr><td colspan="'+cols+'"><div class="empty"><div class="empty-ico">&#128450;</div>No records yet<div class="empty-sub">Use the + Add button above to create the first one</div></div></td></tr>'; }
 
+// ── ACTIVITY LOG ─────────────────────────────────────────
+function renderActivityLog(data) {
+  var rows = data || [];
+  var MEMBER_CLR = { Harshita:'#2a78d6', Vamsi:'#1baf7a', Naveen:'#eda100', Vishwash:'#008300', Ajay:'#4a3aa7' };
+  var h = '<div class="page-title">&#128220; Activity Log</div>';
+  if (!rows.length) {
+    h += '<div class="al-wrap"><div class="empty" style="padding:40px 0;"><div class="empty-ico">&#128220;</div>No activity yet<div class="empty-sub">Every create/update/edit is logged here automatically</div></div></div>';
+  } else {
+    h += '<div class="al-wrap">';
+    h += '<div class="al-row" style="background:var(--surface-2);font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-3);padding:6px 15px;border-bottom:1px solid var(--line-strong);">'+
+      '<div class="al-ts">Timestamp</div><div class="al-user">User</div><div class="al-action">Action</div><div class="al-detail">Entity / Details</div></div>';
+    rows.forEach(function(r) {
+      var clr = MEMBER_CLR[r.user] || 'var(--ink-3)';
+      h += '<div class="al-row">' +
+        '<div class="al-ts">'+esc(r.ts)+'</div>' +
+        '<div class="al-user" style="color:'+clr+'">'+esc(r.user)+'</div>' +
+        '<div class="al-action">'+esc(r.action)+'</div>' +
+        '<div class="al-detail" title="'+esc(r.entity+' — '+r.details)+'">'+esc(r.entity)+(r.details?' &mdash; '+esc(r.details):'')+'</div>' +
+        '</div>';
+    });
+    h += '</div>';
+  }
+  setMain(viewTools() + h);
+}
+
+// ── TRENDS ───────────────────────────────────────────────
+function _trendSvg(rows, key, color) {
+  if (!rows.length) return '<div style="height:60px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--ink-3);">No data</div>';
+  var vals = rows.map(function(r) { return +r[key] || 0; });
+  var maxV = Math.max.apply(null, vals) || 1;
+  var W = 400, H = 60, pad = 4;
+  var n = vals.length;
+  var pts = vals.map(function(v, i) {
+    var x = (pad + (W - 2*pad) * i / (n > 1 ? n - 1 : 1)).toFixed(1);
+    var y = (H - pad - (H - 2*pad) * (v / maxV)).toFixed(1);
+    return x + ',' + y;
+  }).join(' ');
+  var lx = (pad + (W - 2*pad) * (n-1) / (n > 1 ? n - 1 : 1)).toFixed(1);
+  var area = pts + ' ' + lx + ',' + (H - pad) + ' ' + pad + ',' + (H - pad);
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:60px;display:block;" preserveAspectRatio="none">'+
+    '<defs><linearGradient id="tg-'+key+'" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0%" stop-color="'+color+'" stop-opacity=".3"/>'+
+    '<stop offset="100%" stop-color="'+color+'" stop-opacity=".03"/></linearGradient></defs>'+
+    '<polygon fill="url(#tg-'+key+')" points="'+area+'"/>'+
+    '<polyline fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="'+pts+'"/>'+
+    '</svg>';
+}
+function renderTrends(data) {
+  var rows = data || [];
+  var h = '<div class="page-title">&#128202; Trends</div>';
+  if (!rows.length) {
+    h += '<div class="chart-card" style="text-align:center;padding:40px 20px;"><div style="font-size:24px;margin-bottom:12px;">&#128202;</div>'+
+      '<div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px;">No trend data yet</div>'+
+      '<div style="font-size:12px;color:var(--ink-2);margin-bottom:16px;">Daily snapshots populate this view automatically once set up.</div>'+
+      '<div style="background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:14px 18px;text-align:left;display:inline-block;font-size:11.5px;color:var(--ink-2);">'+
+      '<strong style="color:var(--ink);">Setup (one-time):</strong><br>'+
+      '1. Open your GAS project &rarr; run <code style="background:var(--hover);padding:2px 5px;border-radius:4px;">snapshotDailyKPIs()</code> once to create the KPI History sheet<br>'+
+      '2. Set a daily time-driven trigger on <code style="background:var(--hover);padding:2px 5px;border-radius:4px;">snapshotDailyKPIs</code> (Triggers &rarr; + Add Trigger &rarr; Time-driven &rarr; Day timer)<br>'+
+      '3. Return here tomorrow to see your first trend line</div></div>';
+    setMain(h);
+    return;
+  }
+  var latest = rows[rows.length - 1];
+  var metrics = [
+    { key:'cases',      label:'Total Cases',    color:'#2a78d6' },
+    { key:'completed',  label:'Completed',      color:'#0ca30c' },
+    { key:'inProgress', label:'In Progress',    color:'#eda100' },
+    { key:'breaches',   label:'TAT Breaches',   color:'#d03b3b' },
+    { key:'monOpen',    label:'Monitoring Open', color:'#4a3aa7' },
+    { key:'tpOpen',     label:'3P Open',        color:'#1baf7a' },
+    { key:'docsPending',label:'Docs Pending',   color:'#ec835a' },
+    { key:'overdue',    label:'Overdue Tasks',  color:'#e87ba4' }
+  ];
+  var dateRange = rows.length > 1 ? rows[0].date + ' &rarr; ' + rows[rows.length-1].date : rows[0].date;
+  h += '<div style="font-size:11px;color:var(--ink-3);margin-bottom:18px;font-weight:500;">'+rows.length+' day'+(rows.length===1?'':'s')+' &bull; '+dateRange+'</div>';
+  h += '<div class="trend-grid">';
+  metrics.forEach(function(m) {
+    var cur = latest[m.key] || 0;
+    var prev = rows.length > 1 ? (rows[rows.length-2][m.key]||0) : cur;
+    var delta = cur - prev;
+    var deltaHtml = delta === 0 ? '' : ('<span style="font-size:11px;font-weight:600;color:'+(delta > 0 ? 'var(--crit)' : 'var(--good)')+';margin-left:8px;">'+(delta > 0 ? '&uarr;' : '&darr;')+Math.abs(delta)+'</span>');
+    h += '<div class="trend-card">'+
+      '<div class="trend-lbl"><span>'+m.label+'</span></div>'+
+      '<div class="trend-num" style="color:'+m.color+'">'+cur+deltaHtml+'</div>'+
+      _trendSvg(rows, m.key, m.color)+
+      '</div>';
+  });
+  h += '</div>';
+  setMain(h);
+}
+
+// ── KEYBOARD SHORTCUTS ────────────────────────────────────
+function openShortcuts() {
+  var el = document.getElementById('shortcuts-overlay');
+  if (el) { el.style.display = 'flex'; }
+}
+function closeShortcuts() {
+  var el = document.getElementById('shortcuts-overlay');
+  if (el) { el.style.display = 'none'; }
+}
+
 // ── Bootstrap ─────────────────────────────────────────────
 window.onload = function() {
   try { var lay=JSON.parse(localStorage.getItem('obp_layout')||'null'); if(lay&&lay.cases) state.layout=lay; } catch(e) {}
@@ -1664,6 +1833,10 @@ window.onload = function() {
     } else if (e.key==='Escape') {
       closeCmdk();
       if (document.getElementById('modal').classList.contains('open')) closeModal();
+      closeShortcuts();
+    } else if (e.key==='?' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) {
+      e.preventDefault();
+      if (state.currentUser) openShortcuts();
     }
   });
   var u=_loadSession();

@@ -222,7 +222,7 @@ function getSettingsData() {
 }
 
 // ── WRITE: Save / update OB case (cols A-R, leaves S-W for formulas) ──
-function saveCaseData(ownerName, rowIndex, data) {
+function saveCaseData(ownerName, rowIndex, data, callerName) {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sh = ss.getSheetByName(ownerName);
   if (!sh) throw new Error('Sheet not found: ' + ownerName);
@@ -244,11 +244,12 @@ function saveCaseData(ownerName, rowIndex, data) {
     data.l1Approval || '', parseInputDate(data.l1Date)
   ]]);
   SpreadsheetApp.flush();
+  logActivity(callerName || ownerName, rowIndex ? 'Updated OB Case' : 'Created OB Case', data.caseId || 'New Case', 'Vendor: ' + (data.vendor || '—') + ' | Sheet: ' + ownerName);
   return { rowIndex: target, success: true };
 }
 
 // ── WRITE: Save / update monitoring record ─────────────────
-function saveMonitoringRecord(ownerName, rowIndex, data) {
+function saveMonitoringRecord(ownerName, rowIndex, data, callerName) {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sh = ss.getSheetByName(ownerName);
   if (!sh) throw new Error('Sheet not found: ' + ownerName);
@@ -266,11 +267,12 @@ function saveMonitoringRecord(ownerName, rowIndex, data) {
   ]]);
   sh.getRange(target, 11).setValue(data.remarks || '');
   SpreadsheetApp.flush();
+  logActivity(callerName || ownerName, rowIndex ? 'Updated Monitoring Record' : 'Created Monitoring Record', data.seller || 'Record', 'Vertical: ' + (data.vertical || '—') + ' | Sheet: ' + ownerName);
   return { rowIndex: target, success: true };
 }
 
 // ── WRITE: Save / update third-party record ────────────────
-function saveThirdPartyRecord(ownerName, rowIndex, data) {
+function saveThirdPartyRecord(ownerName, rowIndex, data, callerName) {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sh = ss.getSheetByName(ownerName);
   if (!sh) throw new Error('Sheet not found: ' + ownerName);
@@ -288,11 +290,12 @@ function saveThirdPartyRecord(ownerName, rowIndex, data) {
   ]]);
   sh.getRange(target, 11).setValue(data.remarks || '');
   SpreadsheetApp.flush();
+  logActivity(callerName || ownerName, rowIndex ? 'Updated 3P Record' : 'Created 3P Record', data.tpName || 'Record', 'Sheet: ' + ownerName);
   return { rowIndex: target, success: true };
 }
 
 // ── WRITE: Save / update task record ──────────────────────
-function saveTaskRecord(ownerName, rowIndex, data) {
+function saveTaskRecord(ownerName, rowIndex, data, callerName) {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sh = ss.getSheetByName(ownerName);
   if (!sh) throw new Error('Sheet not found: ' + ownerName);
@@ -308,6 +311,7 @@ function saveTaskRecord(ownerName, rowIndex, data) {
   ]]);
   sh.getRange(target, 8).setValue(data.remarks || '');
   SpreadsheetApp.flush();
+  logActivity(callerName || ownerName, rowIndex ? 'Updated Task' : 'Created Task', data.description || 'Task', 'Sheet: ' + ownerName);
   return { rowIndex: target, success: true };
 }
 
@@ -341,7 +345,7 @@ var QUICK_FIELDS = {
   }}
 };
 
-function quickUpdateField(section, ownerName, rowIndex, field, value) {
+function quickUpdateField(section, ownerName, rowIndex, field, value, callerName) {
   var cfg = QUICK_FIELDS[section];
   var map = cfg && cfg.fields[field];
   if (!map) throw new Error('Field not editable: ' + section + '.' + field);
@@ -364,6 +368,7 @@ function quickUpdateField(section, ownerName, rowIndex, field, value) {
     }
   }
   SpreadsheetApp.flush();
+  logActivity(callerName || ownerName, 'Quick-updated field', section + '.' + field, 'Value: ' + value + ' | Row: ' + rowIndex + ' | Sheet: ' + ownerName);
   return { success: true };
 }
 
@@ -387,4 +392,98 @@ function getNextCaseId() {
   var next   = max + 1;
   var padded = (next < 10 ? '000' : next < 100 ? '00' : next < 1000 ? '0' : '') + next;
   return pref + padded;
+}
+
+// ── ACTIVITY LOG ──────────────────────────────────────────
+function _ensureActivitySheet(ss) {
+  var sh = ss.getSheetByName('Activity Log');
+  if (!sh) {
+    sh = ss.insertSheet('Activity Log');
+    sh.getRange(1, 1, 1, 5).setValues([['Timestamp', 'User', 'Action', 'Entity', 'Details']]);
+    sh.getRange(1, 1, 1, 5).setFontWeight('bold');
+    sh.setFrozenRows(1);
+    sh.setColumnWidths(1, 5, [160, 100, 170, 160, 280]);
+  }
+  return sh;
+}
+
+function logActivity(user, action, entity, details) {
+  try {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var sh = _ensureActivitySheet(ss);
+    var ts = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MMM-yyyy HH:mm:ss');
+    sh.appendRow([ts, user || 'System', action || '', entity || '', details || '']);
+    SpreadsheetApp.flush();
+  } catch (e) {
+    // Never let logging failures block the main write
+  }
+}
+
+function getActivityLogData() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sh = ss.getSheetByName('Activity Log');
+  if (!sh) return [];
+  var last = sh.getLastRow();
+  if (last < 2) return [];
+  var n = Math.min(300, last - 1);
+  var start = Math.max(2, last - n + 1);
+  var rows = sh.getRange(start, 1, n, 5).getValues();
+  rows.reverse();
+  return rows.map(function(r) {
+    return { ts: String(r[0]||''), user: String(r[1]||''), action: String(r[2]||''), entity: String(r[3]||''), details: String(r[4]||'') };
+  });
+}
+
+// ── KPI HISTORY (daily snapshots for trend charts) ─────────
+function _ensureKpiSheet(ss) {
+  var sh = ss.getSheetByName('KPI History');
+  if (!sh) {
+    sh = ss.insertSheet('KPI History');
+    var h = ['Date','Total Cases','Completed','In Progress','Docs Pending','TAT Breaches','Mon. Open','3P Open','Overdue'];
+    sh.getRange(1, 1, 1, h.length).setValues([h]);
+    sh.getRange(1, 1, 1, h.length).setFontWeight('bold');
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
+function snapshotDailyKPIs() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sh = _ensureKpiSheet(ss);
+  var today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'dd-MMM-yyyy');
+  var last = sh.getLastRow();
+  if (last > 1 && String(sh.getRange(last, 1).getValue()) === today) return { skipped: true };
+  var t = { cases:0, completed:0, inProgress:0, docsPending:0, breaches:0, monOpen:0, tpOpen:0, overdue:0 };
+  SHEET_NAMES.MEMBERS.forEach(function(name) {
+    var msh = ss.getSheetByName(name);
+    if (!msh) return;
+    var grid = msh.getRange(1, 1, 89, 23).getValues();
+    grid.slice(7, 27).forEach(function(r) {
+      if (!r[0]) return;
+      t.cases++;
+      if (r[22]==='Completed'||r[22]==='Rejected') t.completed++;
+      if (r[22]==='In Progress'||r[22]==='Docs Pending'||r[22]==='Not Started') t.inProgress++;
+      if (r[20]==='Pending Docs') t.docsPending++;
+      if (r[20]==='⚠ Breach') t.breaches++;
+    });
+    grid.slice(31, 46).forEach(function(r) { if (r[9]==='Open'||r[9]==='In Progress'||r[9]==='Started') t.monOpen++; });
+    grid.slice(50, 65).forEach(function(r) { if (r[9]==='Open') t.tpOpen++; });
+    grid.slice(69, 89).forEach(function(r) { if (r[6]==='Overdue') t.overdue++; });
+  });
+  sh.appendRow([today, t.cases, t.completed, t.inProgress, t.docsPending, t.breaches, t.monOpen, t.tpOpen, t.overdue]);
+  SpreadsheetApp.flush();
+  logActivity('System', 'KPI Snapshot', today, 'Cases: ' + t.cases + ' | Completed: ' + t.completed + ' | Breaches: ' + t.breaches);
+  return { success: true, date: today };
+}
+
+function getTrendsData() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sh = ss.getSheetByName('KPI History');
+  if (!sh || sh.getLastRow() < 2) return [];
+  var last = sh.getLastRow();
+  var n = Math.min(60, last - 1);
+  var vals = sh.getRange(Math.max(2, last - n + 1), 1, n, 9).getValues();
+  return vals.map(function(r) {
+    return { date: String(r[0]), cases: +r[1]||0, completed: +r[2]||0, inProgress: +r[3]||0, docsPending: +r[4]||0, breaches: +r[5]||0, monOpen: +r[6]||0, tpOpen: +r[7]||0, overdue: +r[8]||0 };
+  });
 }
