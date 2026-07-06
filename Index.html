@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Onboarding Operations Platform</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -12,19 +12,19 @@
       --ink:#37352f; --ink-2:#787774; --ink-3:#9b9a97;
       --line:rgba(15,15,15,.09); --line-strong:rgba(15,15,15,.16);
       --hover:rgba(15,15,15,.045); --active:rgba(15,15,15,.08);
-      --brand:#1a237e; --accent:#2a78d6;
-      --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
-      --tag-green-bg:#dbeddb; --tag-green-ink:#1c3829;
+      --brand:#024C8A; --accent:#005DFF;
+      --good:#049769; --warn:#fab219; --serious:#ec835a; --crit:#d03b3b;
+      --tag-green-bg:#d2f4ec; --tag-green-ink:#023d2b;
       --tag-red-bg:#ffe2dd;   --tag-red-ink:#5d1715;
       --tag-orange-bg:#fadec9;--tag-orange-ink:#49290e;
-      --tag-blue-bg:#d3e5ef;  --tag-blue-ink:#183347;
+      --tag-blue-bg:#dce9ff;  --tag-blue-ink:#01337d;
       --tag-gray-bg:#e3e2e0;  --tag-gray-ink:#32302c;
-      --tag-purple-bg:#e8deee;--tag-purple-ink:#412454;
+      --tag-purple-bg:#ede6fa;--tag-purple-ink:#4a2d8a;
       --shadow-sm:0 1px 2px rgba(15,15,15,.05), 0 0 0 1px var(--line);
       --shadow-md:0 5px 18px rgba(15,15,15,.10), 0 0 0 1px var(--line);
       --shadow-lg:0 16px 40px rgba(15,15,15,.16), 0 0 0 1px var(--line);
     }
-    body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; }
+    body { font-family: 'Poppins', system-ui, sans-serif; background: var(--bg); color: var(--ink); display: flex; flex-direction: column; height: 100vh; overflow: hidden; -webkit-font-smoothing: antialiased; }
 
     /* ── Motion ─────────────────────────────────────────── */
     @keyframes fadeUp  { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: none; } }
@@ -40,14 +40,14 @@
     @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
     /* ── Login ──────────────────────────────────────────── */
-    #login-screen { position: fixed; inset: 0; background: linear-gradient(155deg, #f7f7f5 0%, #eceef8 55%, #e2e6f6 100%); display: flex; align-items: center; justify-content: center; z-index: 999; }
+    #login-screen { position: fixed; inset: 0; background: linear-gradient(155deg, #f7f7f5 0%, #e6edf7 55%, #dde7f5 100%); display: flex; align-items: center; justify-content: center; z-index: 999; }
     .login-card { background: var(--surface); border-radius: 14px; padding: 38px 42px; width: min(390px, 94vw); box-shadow: var(--shadow-lg); animation: popIn .4s cubic-bezier(.16,1,.3,1); }
     .login-logo { width: 44px; height: 44px; border-radius: 10px; background: var(--brand); color: #fff; font-size: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
     .login-card h2 { font-size: 17px; font-weight: 700; color: var(--ink); letter-spacing: -.2px; }
     .login-sub { font-size: 12px; color: var(--ink-2); margin: 4px 0 22px; }
     .login-lbl { font-size: 10px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .4px; display: block; margin: 12px 0 5px; }
     .login-inp { width: 100%; border: 1px solid var(--line-strong); border-radius: 7px; padding: 9px 11px; font-size: 13px; font-family: inherit; outline: none; color: var(--ink); background: var(--surface); transition: border-color .15s, box-shadow .15s; }
-    .login-inp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(42,120,214,.15); }
+    .login-inp:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,93,255,.15); }
     #login-err { color: var(--crit); font-size: 11px; margin: 10px 0 2px; min-height: 16px; }
     #login-btn { width: 100%; background: var(--brand); color: #fff; border: none; border-radius: 7px; padding: 11px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 8px; transition: filter .15s, transform .1s; }
     #login-btn:hover { filter: brightness(1.15); }
@@ -986,10 +986,10 @@ function renderCmdk() {
 }
 
 // ── Premium UI helpers ────────────────────────────────────
-var MEMBER_CLR = { Harshita:'#2a78d6', Vamsi:'#1baf7a', Naveen:'#eda100', Vishwash:'#008300', Ajay:'#4a3aa7' };
+var MEMBER_CLR = { Harshita:'#005DFF', Vamsi:'#1DC797', Naveen:'#eda100', Vishwash:'#3E7D44', Ajay:'#8460D4' };
 var STATUS_SEGS = [
-  { k:'completed',   l:'Completed',    c:'#0ca30c' },
-  { k:'inProgress',  l:'In Progress',  c:'#2a78d6' },
+  { k:'completed',   l:'Completed',    c:'#049769' },
+  { k:'inProgress',  l:'In Progress',  c:'#005DFF' },
   { k:'docsPending', l:'Docs Pending', c:'#fab219' },
   { k:'notStarted',  l:'Not Started',  c:'#c3c2b7' },
   { k:'rejected',    l:'Rejected',     c:'#898781' }
@@ -1026,8 +1026,8 @@ function casesBoard(fil) {
   var cols = [
     { k:'Not Started',  c:'#c3c2b7' },
     { k:'Docs Pending', c:'#fab219' },
-    { k:'In Progress',  c:'#2a78d6' },
-    { k:'Completed',    c:'#0ca30c' },
+    { k:'In Progress',  c:'#005DFF' },
+    { k:'Completed',    c:'#049769' },
     { k:'Rejected',     c:'#898781' }
   ];
   var h = '<div class="kb-wrap">';
@@ -1047,9 +1047,9 @@ function casesBoard(fil) {
 }
 function projectsBoard(fil) {
   var cols = [
-    { k:'Open',    c:'#2a78d6' },
+    { k:'Open',    c:'#005DFF' },
     { k:'Overdue', c:'#d03b3b' },
-    { k:'Closed',  c:'#0ca30c' }
+    { k:'Closed',  c:'#049769' }
   ];
   var h = '<div class="kb-wrap">';
   cols.forEach(function(col) {
@@ -1112,13 +1112,13 @@ function renderDashboard(data) {
     var done=m.completed||0, open=Math.max(0,(m.totalCases||0)-done);
     var w=(m.totalCases||0)/maxTot*100;
     var segsH='';
-    if(done) segsH+='<div class="hb-seg" style="flex:'+done+';background:#0ca30c" title="Closed: '+done+'"></div>';
-    if(open) segsH+='<div class="hb-seg" style="flex:'+open+';background:#2a78d6" title="Open: '+open+'"></div>';
+    if(done) segsH+='<div class="hb-seg" style="flex:'+done+';background:#049769" title="Closed: '+done+'"></div>';
+    if(open) segsH+='<div class="hb-seg" style="flex:'+open+';background:#005DFF" title="Open: '+open+'"></div>';
     if(!done&&!open) segsH='<div class="hb-seg" style="flex:1;background:var(--hover)"></div>';
     hbH+='<div class="hb-row"><span class="hb-name">'+esc(m.name)+'</span><div class="hb-outer"><div class="hb-track" style="width:'+Math.max(w,4)+'%">'+segsH+'</div></div><span class="hb-tot">'+(m.totalCases||0)+'</span></div>';
   });
   var memberChartH='<div class="chart-card">'+hbH+
-    '<div class="legend"><span><span class="lg-dot" style="background:#0ca30c"></span>Closed</span><span><span class="lg-dot" style="background:#2a78d6"></span>Open</span></div></div>';
+    '<div class="legend"><span><span class="lg-dot" style="background:#049769"></span>Closed</span><span><span class="lg-dot" style="background:#005DFF"></span>Open</span></div></div>';
 
   // Team performance table
   var tot={totalCases:0,completed:0,inProgress:0,docsPending:0,tatBreaches:0,monitoringOpen:0,thirdPartyOpen:0,otherTasks:0};
@@ -1135,7 +1135,7 @@ function renderDashboard(data) {
   pipe.forEach(function(p){
     var other=Math.max(0,(p.total||0)-((p.inProgress||0)+(p.completed||0)+(p.rejected||0)));
     var mini='';
-    [[p.completed,'#0ca30c','Completed'],[p.inProgress,'#2a78d6','In Progress'],[other,'#c3c2b7','Other'],[p.rejected,'#898781','Rejected']].forEach(function(s){
+    [[p.completed,'#049769','Completed'],[p.inProgress,'#005DFF','In Progress'],[other,'#c3c2b7','Other'],[p.rejected,'#898781','Rejected']].forEach(function(s){
       if(s[0]>0) mini+='<div class="hb-seg" style="flex:'+s[0]+';background:'+s[1]+'" title="'+s[2]+': '+s[0]+'"></div>';
     });
     if(!p.total) mini='<div class="hb-seg" style="flex:1;background:var(--hover)"></div>';
@@ -1144,8 +1144,8 @@ function renderDashboard(data) {
       '<div style="font-size:24px;font-weight:700;color:var(--ink);margin:9px 0 7px;letter-spacing:-.5px;">'+(p.total||0)+'<span style="font-size:10px;color:var(--ink-3);font-weight:600;letter-spacing:0;"> cases</span></div>'+
       '<div class="hb-track" style="height:8px;">'+mini+'</div>'+
       '<div style="display:flex;gap:12px;margin-top:9px;font-size:10px;color:var(--ink-2);font-weight:600;">'+
-      '<span><span class="lg-dot" style="background:#0ca30c"></span>'+(p.completed||0)+' done</span>'+
-      '<span><span class="lg-dot" style="background:#2a78d6"></span>'+(p.inProgress||0)+' active</span>'+
+      '<span><span class="lg-dot" style="background:#049769"></span>'+(p.completed||0)+' done</span>'+
+      '<span><span class="lg-dot" style="background:#005DFF"></span>'+(p.inProgress||0)+' active</span>'+
       '<span><span class="lg-dot" style="background:#898781"></span>'+(p.rejected||0)+' rejected</span></div>'+
       '</div>';
   });
@@ -1183,8 +1183,8 @@ function renderWorkspace(data) {
   if (!data){setMain('<div class="error-box">No workspace data.</div>');return;}
   var s=data.summary||{}, member=data.member;
   var sumH='<div class="sum-cards">'+
-    sumCard(s.totalCases,'Total OB Cases','#1a237e')+sumCard(s.completed,'Completed','#1b5e20')+
-    sumCard(s.tatBreaches,'TAT Breaches','#b71c1c')+sumCard(s.monitoringOpen,'Monitoring Open','#0277bd')+
+    sumCard(s.totalCases,'Total OB Cases','#024C8A')+sumCard(s.completed,'Completed','#025438')+
+    sumCard(s.tatBreaches,'TAT Breaches','#b71c1c')+sumCard(s.monitoringOpen,'Monitoring Open','#005DFF')+
     '</div>';
   var cRows='';
   (data.cases||[]).forEach(function(c){
@@ -1285,7 +1285,7 @@ function renderCase360(data) {
     '<div class="case-chips">'+badge(c.caseStatus)+' '+badge(c.tatStatus)+' '+badge(c.docStatus)+
     ' <button class="btn-edit" style="margin-left:4px;" onclick="editCase(\''+esc(c.owner)+'\','+c.rowIndex+')">&#9998; Edit</button></div></div>'+
     '<div style="text-align:right"><div style="font-size:10px;color:#546e7a;text-transform:uppercase;letter-spacing:.3px;">TAT Days</div>'+
-    '<div style="font-size:30px;font-weight:700;color:#1a237e;">'+fmt(c.tatDays)+'</div></div></div></div>';
+    '<div style="font-size:30px;font-weight:700;color:#024C8A;">'+fmt(c.tatDays)+'</div></div></div></div>';
 
   var tabs=[{id:'overview',lbl:'Overview'},{id:'workflow',lbl:'Workflow'},{id:'monitoring',lbl:'Monitoring'},{id:'thirdparty',lbl:'Third Party'}];
   var tabH='<div class="case-tabs">';
@@ -1418,7 +1418,7 @@ function renderSettings(data) {
   var mpH=(data.stagesMpEpr||[]).map(function(s){return '<div class="set-row"><span class="set-key">'+esc(s.order)+'. '+esc(s.label)+'</span><span>'+Math.round(s.weight*100)+'%</span></div>';}).join('');
   var ompH=(data.stagesOmp||[]).map(function(s){return '<div class="set-row"><span class="set-key">'+esc(s.order)+'. '+esc(s.label)+'</span><span>'+Math.round(s.weight*100)+'%</span></div>';}).join('');
   setMain(
-    '<div class="set-card" style="background:#e8eaf6;"><div style="font-size:28px;font-weight:700;color:#1a237e;">'+fmt(data.tatTarget)+'d</div>'+
+    '<div class="set-card" style="background:#dce8f7;"><div style="font-size:28px;font-weight:700;color:#024C8A;">'+fmt(data.tatTarget)+'d</div>'+
     '<div style="font-size:10px;color:#546e7a;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px;">TAT Target (working days)</div>'+
     '<div style="font-size:11px;color:#546e7a;">TAT starts only when Doc % Collected = 100%. If docs are incomplete, TAT is paused.</div></div>'+
     '<div class="set-card"><h3>Team Roster</h3>'+teamH+'</div>'+
@@ -1498,11 +1498,11 @@ function openCaseForm(owner,c) {
     frow('Vendor Name',        finp('f-vendor',d.vendor))+
     '<div class="form-row span2"><label class="form-label">Vertical</label>'+fselInp('f-vertical',VERTICALS,d.vertical)+'</div>'+
     frow('Date Initiated',     fdate('f-dateInit',d.dateInit))+
-    '<div class="form-row span2"><label class="form-label">Completion % <span style="font-size:9px;color:#1a237e;font-weight:400;text-transform:none;">(auto-calculated from stages)</span></label>'+
+    '<div class="form-row span2"><label class="form-label">Completion % <span style="font-size:9px;color:#024C8A;font-weight:400;text-transform:none;">(auto-calculated from stages)</span></label>'+
     '<div style="display:flex;align-items:center;gap:10px;">'+
-    '<input class="form-inp" id="f-docPct" type="number" value="'+docPctDisplay+'" readonly style="width:68px;background:#e8eaf6;font-weight:700;color:#1a237e;cursor:default;" autocomplete="off">'+
-    '<div style="flex:1;height:10px;background:#e0e0e0;border-radius:5px;overflow:hidden;"><div id="case-prog-bar" style="height:100%;background:#1a237e;width:'+docPctDisplay+'%;transition:width .3s;"></div></div>'+
-    '<span id="case-prog-pct" style="font-size:12px;font-weight:700;color:#1a237e;min-width:34px;">'+docPctDisplay+'%</span>'+
+    '<input class="form-inp" id="f-docPct" type="number" value="'+docPctDisplay+'" readonly style="width:68px;background:#dce8f7;font-weight:700;color:#024C8A;cursor:default;" autocomplete="off">'+
+    '<div style="flex:1;height:10px;background:#e0e0e0;border-radius:5px;overflow:hidden;"><div id="case-prog-bar" style="height:100%;background:#024C8A;width:'+docPctDisplay+'%;transition:width .3s;"></div></div>'+
+    '<span id="case-prog-pct" style="font-size:12px;font-weight:700;color:#024C8A;min-width:34px;">'+docPctDisplay+'%</span>'+
     '</div></div>'+
     frow('Doc Validation Y/N', fselInp('f-docValid',YN,d.docValid))+
     frow('Doc Validation Date',fdate('f-docVDate',d.docValidDate))+
@@ -1583,7 +1583,7 @@ function _updateCaseStageUI() {
   if(yn('f-stage4'))                 pct += wt.stage4;
   if(!isOMP && yn('f-mom'))          pct += wt.mom;
   if(yn('f-l1Approval'))             pct += wt.l1;
-  var barClr = pct===100 ? '#1b5e20' : pct>=50 ? '#1a237e' : '#e65100';
+  var barClr = pct===100 ? '#025438' : pct>=50 ? '#024C8A' : '#e65100';
   var inp=document.getElementById('f-docPct');    if(inp)  inp.value=pct;
   var bar=document.getElementById('case-prog-bar'); if(bar){ bar.style.width=pct+'%'; bar.style.background=barClr; }
   var lbl2=document.getElementById('case-prog-pct'); if(lbl2){ lbl2.textContent=pct+'%'; lbl2.style.color=barClr; }
@@ -1725,7 +1725,7 @@ function noRec(cols) { return '<tr><td colspan="'+cols+'"><div class="empty"><di
 // ── ACTIVITY LOG ─────────────────────────────────────────
 function renderActivityLog(data) {
   var rows = data || [];
-  var MEMBER_CLR = { Harshita:'#2a78d6', Vamsi:'#1baf7a', Naveen:'#eda100', Vishwash:'#008300', Ajay:'#4a3aa7' };
+  var MEMBER_CLR = { Harshita:'#005DFF', Vamsi:'#1DC797', Naveen:'#eda100', Vishwash:'#3E7D44', Ajay:'#8460D4' };
   var h = '<div class="page-title">&#128220; Activity Log</div>';
   if (!rows.length) {
     h += '<div class="al-wrap"><div class="empty" style="padding:40px 0;"><div class="empty-ico">&#128220;</div>No activity yet<div class="empty-sub">Every create/update/edit is logged here automatically</div></div></div>';
@@ -1786,12 +1786,12 @@ function renderTrends(data) {
   }
   var latest = rows[rows.length - 1];
   var metrics = [
-    { key:'cases',      label:'Total Cases',    color:'#2a78d6' },
-    { key:'completed',  label:'Completed',      color:'#0ca30c' },
+    { key:'cases',      label:'Total Cases',    color:'#005DFF' },
+    { key:'completed',  label:'Completed',      color:'#049769' },
     { key:'inProgress', label:'In Progress',    color:'#eda100' },
     { key:'breaches',   label:'TAT Breaches',   color:'#d03b3b' },
-    { key:'monOpen',    label:'Monitoring Open', color:'#4a3aa7' },
-    { key:'tpOpen',     label:'3P Open',        color:'#1baf7a' },
+    { key:'monOpen',    label:'Monitoring Open', color:'#8460D4' },
+    { key:'tpOpen',     label:'3P Open',        color:'#1DC797' },
     { key:'docsPending',label:'Docs Pending',   color:'#ec835a' },
     { key:'overdue',    label:'Overdue Tasks',  color:'#e87ba4' }
   ];
