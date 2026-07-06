@@ -272,10 +272,46 @@
 
     .footer { text-align: center; font-size: 10px; color: var(--ink-3); padding: 18px 0 4px; }
 
+    /* ── Command palette (Ctrl/Cmd+K) ───────────────────── */
+    #cmdk-overlay { position: fixed; inset: 0; background: rgba(15,15,15,.42); backdrop-filter: blur(2px); z-index: 300; display: none; align-items: flex-start; justify-content: center; padding-top: 11vh; }
+    #cmdk-overlay.open { display: flex; animation: fadeIn .12s ease; }
+    #cmdk { width: min(620px, 94vw); background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-lg); overflow: hidden; animation: popIn .22s cubic-bezier(.16,1,.3,1); }
+    .cmdk-inp { width: 100%; border: none; outline: none; padding: 15px 18px; font-size: 14px; font-family: inherit; color: var(--ink); border-bottom: 1px solid var(--line); background: transparent; }
+    .cmdk-list { max-height: 52vh; overflow-y: auto; padding: 6px; }
+    .cmdk-group { font-size: 9.5px; font-weight: 700; color: var(--ink-3); text-transform: uppercase; letter-spacing: .5px; padding: 9px 12px 4px; }
+    .cmdk-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 7px; font-size: 12.5px; color: var(--ink); cursor: pointer; }
+    .cmdk-item.sel { background: var(--active); }
+    .ci-ico { width: 22px; text-align: center; flex-shrink: 0; }
+    .ci-sub { margin-left: auto; font-size: 10px; color: var(--ink-3); white-space: nowrap; }
+    .cmdk-foot { display: flex; gap: 16px; padding: 9px 14px; border-top: 1px solid var(--line); font-size: 10px; color: var(--ink-3); }
+    .cmdk-empty { padding: 22px; text-align: center; font-size: 12px; color: var(--ink-3); }
+    .kbd { background: var(--active); border-radius: 4px; padding: 1px 6px; font-size: 9px; font-weight: 700; color: var(--ink-2); margin-left: 6px; }
+
+    /* ── Sortable columns ───────────────────────────────── */
+    .th-sort { cursor: pointer; user-select: none; transition: color .12s; }
+    .th-sort:hover { color: var(--ink); }
+    .th-arrow { font-size: 8px; margin-left: 3px; }
+
+    /* ── Empty states ───────────────────────────────────── */
+    .empty { padding: 28px 10px; text-align: center; color: var(--ink-3); font-size: 12px; font-weight: 500; }
+    .empty-ico { font-size: 24px; margin-bottom: 7px; }
+    .empty-sub { font-size: 10px; margin-top: 4px; }
+
+    /* ── Needs Attention ────────────────────────────────── */
+    .att-card { background: var(--surface); border-radius: 10px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .att-row { display: flex; align-items: center; gap: 11px; padding: 10px 15px; border-bottom: 1px solid var(--line); font-size: 12px; cursor: pointer; transition: background .12s; border-left: 3px solid transparent; }
+    .att-row:last-child { border-bottom: none; }
+    .att-row:hover { background: var(--hover); }
+    .att-row.p1 { border-left-color: var(--crit); }
+    .att-row.p2 { border-left-color: var(--warn); }
+    .att-row.p3 { border-left-color: var(--accent); }
+    .att-lbl { font-weight: 600; color: var(--ink); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .att-clear { padding: 20px; text-align: center; font-size: 12px; color: var(--tag-green-ink); background: var(--tag-green-bg); border-radius: 10px; font-weight: 600; }
+
     /* ── Print / PDF ────────────────────────────────────── */
     @media print {
       body { height: auto; overflow: visible; background: #fff; }
-      .app-header, .sidebar, .view-tools, .filters, .btn-add, .btn-edit, .refresh-btn, #login-screen, .modal-overlay, .footer, .td-act, .toast, .seg { display: none !important; }
+      .app-header, .sidebar, .view-tools, .filters, .btn-add, .btn-edit, .refresh-btn, #login-screen, .modal-overlay, .footer, .td-act, .toast, .seg, #cmdk-overlay { display: none !important; }
       .body-layout { display: block; }
       .main { overflow: visible; padding: 0; }
       .main > * { animation: none !important; }
@@ -290,8 +326,12 @@
       .detail-grid { grid-template-columns: repeat(2, 1fr); }
       .main { padding: 16px; }
     }
+    .menu { display: none; }
     @media (max-width: 600px) {
-      .sidebar { display: none; }
+      .menu { display: inline-flex; }
+      #search-btn .kbd { display: none; }
+      .sidebar { position: fixed; left: 0; top: 50px; bottom: 0; z-index: 150; transform: translateX(-100%); transition: transform .25s ease; box-shadow: var(--shadow-lg); }
+      .sidebar.open { transform: none; }
       .form-grid { grid-template-columns: 1fr; }
       .form-grid .span2 { grid-column: span 1; }
       .app-header h1 { font-size: 11px; }
@@ -316,8 +356,12 @@
 </div>
 
 <header class="app-header">
-  <h1><span class="brand-cube">&#9881;</span> Onboarding Operations</h1>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button id="menu-btn" class="refresh-btn menu" onclick="toggleSidebar()">&#9776;</button>
+    <h1><span class="brand-cube">&#9881;</span> Onboarding Operations</h1>
+  </div>
   <div class="header-right">
+    <button class="refresh-btn" id="search-btn" onclick="openCmdk()">&#128269; Search<span class="kbd">Ctrl K</span></button>
     <span id="header-user" class="user-chip"></span>
     <span id="updated-time"></span>
     <button class="refresh-btn" id="refresh-btn" onclick="onRefresh()">&#8635; Refresh</button>
@@ -355,6 +399,15 @@
   <main class="main" id="main"></main>
 </div>
 
+<!-- Command palette -->
+<div id="cmdk-overlay" onclick="if(event.target===this)closeCmdk()">
+  <div id="cmdk">
+    <input id="cmdk-inp" class="cmdk-inp" placeholder="Search cases, tasks, records&hellip; or type a command" oninput="renderCmdk()" onkeydown="cmdkKey(event)" autocomplete="off">
+    <div id="cmdk-list" class="cmdk-list"></div>
+    <div class="cmdk-foot"><span><span class="kbd">&#8593;&#8595;</span> navigate</span><span><span class="kbd">Enter</span> open</span><span><span class="kbd">Esc</span> close</span></div>
+  </div>
+</div>
+
 <!-- Modal -->
 <div class="modal-overlay" id="modal">
   <div class="modal-box">
@@ -390,6 +443,7 @@ var state = {
     projects:   {owner:'',status:''}
   },
   layout: { cases: 'table', projects: 'table' },
+  sort: {},
   data: {}
 };
 var pendingSave = null;
@@ -419,6 +473,7 @@ function doLogin() {
         return;
       }
       state.currentUser = u;
+      _saveSession(u);
       document.getElementById('login-screen').style.display = 'none';
       _setupForUser(u);
     })
@@ -435,6 +490,7 @@ function doLogin() {
 
 function doLogout() {
   state.currentUser = null;
+  try { localStorage.removeItem('obp_session'); } catch(e) {}
   document.getElementById('header-user').textContent = '';
   document.getElementById('login-email').value = '';
   document.getElementById('login-pass').value = '';
@@ -623,6 +679,7 @@ function navigate(viewId) {
   // Manager account (Ajay) has no personal sheet — redirect workspace → dashboard
   if (viewId === 'workspace' && state.user === '__manager__') viewId = 'dashboard';
   state.view = viewId;
+  var sb=document.querySelector('.sidebar'); if(sb) sb.classList.remove('open');
   document.querySelectorAll('.nav-item').forEach(function(el) {
     var v = el.dataset.v;
     el.classList.toggle('active', v===viewId||(viewId==='case360'&&v==='cases'));
@@ -675,7 +732,8 @@ function loadView(viewId) {
   }
   function fail(e) {
     btn.disabled=false; btn.textContent='↻ Refresh';
-    setMain('<div class="error-box">&#9888; '+esc(e.message||String(e))+'</div>');
+    setMain('<div class="error-box">&#9888; '+esc(e.message||String(e))+'</div>'+
+      '<button class="tool-btn" onclick="onRefresh()">&#8635; Retry</button>');
   }
   var r = google.script.run.withSuccessHandler(ok).withFailureHandler(fail);
   if      (viewId==='dashboard')   r.getDashboardData();
@@ -719,6 +777,155 @@ function applyFilter(view,key,val) {
   if(d) renderView(view,d);
 }
 
+// ── Session persistence (12h) ─────────────────────────────
+function _saveSession(u) {
+  try { localStorage.setItem('obp_session', JSON.stringify({ u:u, exp: Date.now()+12*3600*1000 })); } catch(e) {}
+}
+function _loadSession() {
+  try {
+    var s = JSON.parse(localStorage.getItem('obp_session')||'null');
+    if (s && s.u && s.exp > Date.now()) return s.u;
+  } catch(e) {}
+  return null;
+}
+
+// ── Column sorting ────────────────────────────────────────
+function thRow(view, cols) {
+  var s = state.sort[view]||{};
+  return cols.map(function(c) {
+    if (!c[1]) return '<th>'+c[0]+'</th>';
+    var arrow = s.key===c[1] ? '<span class="th-arrow">'+(s.dir===1?'&#9650;':'&#9660;')+'</span>' : '';
+    return '<th class="th-sort" onclick="setSort(\''+view+'\',\''+c[1]+'\')">'+c[0]+arrow+'</th>';
+  }).join('');
+}
+function setSort(view, key) {
+  var s = state.sort[view]||{ key:null, dir:1 };
+  if (s.key===key) s.dir=-s.dir; else { s.key=key; s.dir=1; }
+  state.sort[view]=s;
+  var d=state.data[cKey(view)];
+  if (d) renderView(view,d);
+}
+function applySort(view, arr) {
+  var s=state.sort[view];
+  if (!s||!s.key) return arr;
+  var k=s.key, dir=s.dir;
+  return arr.slice().sort(function(a,b) {
+    var x=a[k], y=b[k];
+    var ix=toInputDate(x), iy=toInputDate(y);
+    if (ix&&iy) return ix<iy?-dir:ix>iy?dir:0;
+    var nx=parseFloat(x), ny=parseFloat(y);
+    if (!isNaN(nx)&&!isNaN(ny)) return (nx-ny)*dir;
+    x=String(x===null||x===undefined?'':x).toLowerCase();
+    y=String(y===null||y===undefined?'':y).toLowerCase();
+    return x<y?-dir:x>y?dir:0;
+  });
+}
+
+// ── Mobile sidebar ────────────────────────────────────────
+function toggleSidebar() {
+  var sb=document.querySelector('.sidebar');
+  if (sb) sb.classList.toggle('open');
+}
+
+// ── Command palette (Ctrl/Cmd+K) ──────────────────────────
+var cmdkSel=0, cmdkItems=[], _idxLoading={};
+function defaultOwner() { return state.currentUser ? (state.currentUser.sheet||null) : null; }
+function cmdkActions() {
+  var isAdmin = state.currentUser && state.currentUser.role==='admin';
+  var acts=[
+    { ico:'&#128202;', lbl:'Go to Control Tower',      admin:true,  run:function(){navigate('dashboard');} },
+    { ico:'&#128101;', lbl:'Go to My Workspace',                    run:function(){navigate('workspace');} },
+    { ico:'&#128203;', lbl:'Go to OB Cases',                        run:function(){navigate('cases');} },
+    { ico:'&#128065;', lbl:'Go to Monitoring',                      run:function(){navigate('monitoring');} },
+    { ico:'&#129309;', lbl:'Go to Third Party',                     run:function(){navigate('thirdparty');} },
+    { ico:'&#128196;', lbl:'Go to Projects',                        run:function(){navigate('projects');} },
+    { ico:'&#128200;', lbl:'Go to Performance',                     run:function(){navigate('performance');} },
+    { ico:'&#9881;',   lbl:'Go to Settings',           admin:true,  run:function(){navigate('settings');} },
+    { ico:'&#10133;',  lbl:'New OB Case',                           run:function(){newCase(defaultOwner());} },
+    { ico:'&#10133;',  lbl:'New Monitoring Record',                 run:function(){newMonitoring(defaultOwner());} },
+    { ico:'&#10133;',  lbl:'New Third Party Record',                run:function(){newThirdParty(defaultOwner());} },
+    { ico:'&#10133;',  lbl:'New Task',                              run:function(){newTask(defaultOwner());} },
+    { ico:'&#8595;',   lbl:'Export current view (CSV)',             run:exportCsv },
+    { ico:'&#128424;', lbl:'Print current view',                    run:function(){window.print();} }
+  ];
+  return acts.filter(function(a){ return !a.admin || isAdmin; });
+}
+function _ensureIndex() {
+  var map={ cases:'getCasesListData', monitoring:'getMonitoringListData', thirdparty:'getThirdPartyListData', projects:'getProjectsData' };
+  Object.keys(map).forEach(function(k) {
+    if (state.data[k]||_idxLoading[k]) return;
+    _idxLoading[k]=true;
+    google.script.run
+      .withSuccessHandler(function(d){ _idxLoading[k]=false; state.data[k]=d; if(document.getElementById('cmdk-overlay').classList.contains('open')) renderCmdk(); })
+      .withFailureHandler(function(){ _idxLoading[k]=false; })[map[k]]();
+  });
+}
+function openCmdk() {
+  if (!state.currentUser) return;
+  _ensureIndex();
+  var ov=document.getElementById('cmdk-overlay');
+  ov.classList.add('open');
+  var inp=document.getElementById('cmdk-inp');
+  inp.value=''; cmdkSel=0;
+  renderCmdk();
+  setTimeout(function(){ inp.focus(); },30);
+}
+function closeCmdk() { document.getElementById('cmdk-overlay').classList.remove('open'); }
+function cmdkRun(i) {
+  var it=cmdkItems[i];
+  if (it&&it.run) { closeCmdk(); it.run(); }
+}
+function cmdkKey(e) {
+  if (e.key==='ArrowDown') { e.preventDefault(); if(cmdkSel<cmdkItems.length-1){cmdkSel++;_cmdkPaint();} }
+  else if (e.key==='ArrowUp') { e.preventDefault(); if(cmdkSel>0){cmdkSel--;_cmdkPaint();} }
+  else if (e.key==='Enter') { e.preventDefault(); cmdkRun(cmdkSel); }
+  else if (e.key==='Escape') { closeCmdk(); }
+}
+function _cmdkPaint() {
+  var list=document.getElementById('cmdk-list');
+  var els=list.querySelectorAll('.cmdk-item');
+  els.forEach(function(el,i){ el.classList.toggle('sel', i===cmdkSel); });
+  var sel=els[cmdkSel];
+  if (sel) sel.scrollIntoView({ block:'nearest' });
+}
+function renderCmdk() {
+  var q=document.getElementById('cmdk-inp').value.trim().toLowerCase();
+  var groups=[];
+  var acts=cmdkActions().filter(function(a){ return !q || a.lbl.toLowerCase().indexOf(q)>-1; });
+  if (acts.length) groups.push({ hdr:'Actions', items:acts });
+  if (q.length>=2) {
+    function hit(hay){ return String(hay||'').toLowerCase().indexOf(q)>-1; }
+    var cs=(state.data.cases||[]).filter(function(c){ return hit(c.caseId)||hit(c.vendor)||hit(c.owner)||hit(c.vertical)||hit(c.caseStatus); }).slice(0,5)
+      .map(function(c){ return { ico:'&#128203;', lbl:c.caseId+' &middot; '+esc(c.vendor||''), sub:esc(c.owner)+' &middot; '+esc(String(c.caseStatus||'')), run:(function(o,r){return function(){openCase360(o,r);};})(c.owner,c.rowIndex) }; });
+    if (cs.length) groups.push({ hdr:'OB Cases', items:cs });
+    var tk=(state.data.projects||[]).filter(function(t){ return hit(t.description)||hit(t.category)||hit(t.owner)||hit(t.status); }).slice(0,5)
+      .map(function(t){ return { ico:'&#128196;', lbl:esc(t.description||''), sub:esc(t.owner)+' &middot; '+esc(String(t.status||'')), run:(function(o,r){return function(){editTask(o,r);};})(t.owner,t.rowIndex) }; });
+    if (tk.length) groups.push({ hdr:'Tasks', items:tk });
+    var mn=(state.data.monitoring||[]).filter(function(m){ return hit(m.seller)||hit(m.owner)||hit(m.month)||hit(m.status); }).slice(0,5)
+      .map(function(m){ return { ico:'&#128065;', lbl:esc(m.seller||''), sub:esc(m.owner)+' &middot; '+esc(String(m.month||'')), run:(function(o,r){return function(){editMonitoring(o,r);};})(m.owner,m.rowIndex) }; });
+    if (mn.length) groups.push({ hdr:'Monitoring', items:mn });
+    var tp=(state.data.thirdparty||[]).filter(function(t){ return hit(t.tpName)||hit(t.caseRef)||hit(t.owner)||hit(t.status); }).slice(0,5)
+      .map(function(t){ return { ico:'&#129309;', lbl:esc(t.tpName||''), sub:esc(t.owner)+' &middot; '+esc(String(t.status||'')), run:(function(o,r){return function(){editThirdParty(o,r);};})(t.owner,t.rowIndex) }; });
+    if (tp.length) groups.push({ hdr:'Third Party', items:tp });
+  }
+  cmdkItems=[];
+  var h='';
+  groups.forEach(function(g) {
+    h+='<div class="cmdk-group">'+g.hdr+'</div>';
+    g.items.forEach(function(it) {
+      var i=cmdkItems.length;
+      cmdkItems.push(it);
+      h+='<div class="cmdk-item'+(i===cmdkSel?' sel':'')+'" onclick="cmdkRun('+i+')" onmousemove="cmdkSel='+i+';_cmdkPaint()">'+
+        '<span class="ci-ico">'+it.ico+'</span><span>'+it.lbl+'</span>'+(it.sub?'<span class="ci-sub">'+it.sub+'</span>':'')+'</div>';
+    });
+  });
+  var loading=Object.keys(_idxLoading).some(function(k){ return _idxLoading[k]; });
+  if (!h) h='<div class="cmdk-empty">'+(loading?'Indexing your data&hellip;':'No matches for &ldquo;'+esc(q)+'&rdquo;')+'</div>';
+  else if (q.length>=2&&loading) h+='<div class="cmdk-empty" style="padding:10px;">Indexing more data&hellip;</div>';
+  if (cmdkSel>=cmdkItems.length) cmdkSel=Math.max(0,cmdkItems.length-1);
+  document.getElementById('cmdk-list').innerHTML=h;
+}
+
 // ── Premium UI helpers ────────────────────────────────────
 var MEMBER_CLR = { Harshita:'#2a78d6', Vamsi:'#1baf7a', Naveen:'#eda100', Vishwash:'#008300', Ajay:'#4a3aa7' };
 var STATUS_SEGS = [
@@ -748,6 +955,7 @@ function segCtl(view) {
 }
 function setLayout(view, mode) {
   state.layout[view] = mode;
+  try { localStorage.setItem('obp_layout', JSON.stringify(state.layout)); } catch(e) {}
   var d = state.data[cKey(view)];
   if (d) renderView(view, d); else loadView(view);
 }
@@ -926,9 +1134,36 @@ function renderWorkspace(data) {
   (data.tasks||[]).forEach(function(t){
     tkRows+='<tr><td>'+esc(t.description)+'</td><td>'+esc(t.category)+'</td><td>'+esc(t.dateAssigned)+'</td><td>'+esc(t.targetDate)+'</td><td>'+datePill(member,t.rowIndex,'actualDate',t.actualDate)+'</td><td>'+fmt(t.daysOpen)+'</td><td>'+badge(t.status)+'</td><td>'+esc(t.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editTask(\''+esc(member)+'\','+t.rowIndex+')">Edit</button></td></tr>';
   });
+  // Needs Attention — prioritised action queue
+  var att=[];
+  (data.cases||[]).forEach(function(c){
+    if (c.tatStatus==='\u26a0 Breach') att.push({p:1,ico:'&#128680;',lbl:esc(c.caseId)+' &middot; '+esc(c.vendor||''),sub:'TAT breached',go:'openCase360(\''+esc(member)+'\','+c.rowIndex+')'});
+    else if (c.tatStatus==='Pending Docs') att.push({p:2,ico:'&#128196;',lbl:esc(c.caseId)+' &middot; '+esc(c.vendor||''),sub:'Docs incomplete',go:'openCase360(\''+esc(member)+'\','+c.rowIndex+')'});
+  });
+  (data.tasks||[]).forEach(function(t){
+    if (t.status==='Overdue') att.push({p:1,ico:'&#9200;',lbl:esc(t.description||''),sub:'Overdue '+esc(String(t.daysOpen||''))+'d',go:'editTask(\''+esc(member)+'\','+t.rowIndex+')'});
+  });
+  (data.thirdParty||[]).forEach(function(t){
+    if (t.status==='Open') att.push({p:3,ico:'&#129309;',lbl:esc(t.tpName||''),sub:'3P open',go:'editThirdParty(\''+esc(member)+'\','+t.rowIndex+')'});
+  });
+  (data.monitoring||[]).forEach(function(m){
+    if (m.status==='Open'||m.status==='Started'||m.status==='In Progress') att.push({p:3,ico:'&#128065;',lbl:esc(m.seller||''),sub:'Monitoring '+esc(String(m.status)),go:'editMonitoring(\''+esc(member)+'\','+m.rowIndex+')'});
+  });
+  att.sort(function(a,b){return a.p-b.p;});
+  var attH;
+  if (!att.length) {
+    attH='<div class="att-clear">&#127881; All clear &mdash; nothing needs your attention right now</div>';
+  } else {
+    var shown=att.slice(0,8);
+    attH='<div class="att-card">'+shown.map(function(a){
+      return '<div class="att-row p'+a.p+'" onclick="'+a.go+'"><span>'+a.ico+'</span><span class="att-lbl">'+a.lbl+'</span><span class="badge '+(a.p===1?'b-red':a.p===2?'b-orange':'b-blue')+'">'+a.sub+'</span><span style="color:var(--ink-3);">&#8250;</span></div>';
+    }).join('')+(att.length>8?'<div class="att-row" style="cursor:default;justify-content:center;color:var(--ink-3);font-size:11px;">+'+(att.length-8)+' more below</div>':'')+'</div>';
+  }
+  attH=sec('&#9889; NEEDS ATTENTION <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink-3);margin-left:6px;">'+att.length+' item'+(att.length===1?'':'s')+'</span>',attH,false);
+
   setMain(
     viewTools()+
-    '<h2 style="font-size:14px;font-weight:700;color:#1a237e;margin-bottom:14px;">&#128101; '+esc(member)+' &mdash; Workspace</h2>'+sumH+
+    '<h2 style="font-size:14px;font-weight:700;color:var(--ink);letter-spacing:-.3px;margin-bottom:14px;">&#128101; '+esc(member)+' &mdash; Workspace</h2>'+sumH+attH+
     secBtn('&#128203; OB Cases','(click row for detail)','newCase(\''+esc(member)+'\')',
       tw('<thead><tr><th>Case ID</th><th>Vendor</th><th>Vertical</th><th>Date Init</th><th>Doc %</th><th>Progress</th><th>TAT Days</th><th>TAT Status</th><th>Status</th><th></th></tr></thead><tbody>'+(cRows||noRec(10))+'</tbody>'))+
     secBtn('&#128065; Monitoring','','newMonitoring(\''+esc(member)+'\')',
@@ -947,6 +1182,7 @@ function renderCases(data) {
   var verts =uniq(all.map(function(c){return c.vertical;}));
   var stats =uniq(all.map(function(c){return c.caseStatus;}));
   var fil=all.filter(function(c){return(!f.owner||c.owner===f.owner)&&(!f.vertical||c.vertical===f.vertical)&&(!f.status||c.caseStatus===f.status);});
+  fil=applySort('cases',fil);
   var filterH='<div class="filters"><span class="filter-lbl">Filter:</span>'+
     mkFsel(owners,f.owner,'Owner',"applyFilter('cases','owner',this.value)")+
     mkFsel(verts, f.vertical,'Vertical',"applyFilter('cases','vertical',this.value)")+
@@ -960,7 +1196,7 @@ function renderCases(data) {
     fil.forEach(function(c){
       rows+='<tr class="click-row" onclick="openCase360(\''+esc(c.owner)+'\','+c.rowIndex+')"><td>'+esc(c.caseId)+'</td><td>'+avatar(c.owner)+'</td><td>'+esc(c.vendor)+'</td><td>'+esc(c.vertical)+'</td><td>'+esc(c.dateInit)+'</td><td>'+pct(c.docPct)+'</td><td>'+progBar(c.pctDone)+'</td><td>'+fmt(c.tatDays)+'</td><td>'+badge(c.tatStatus)+'</td><td>'+badge(c.caseStatus)+'</td><td class="td-act"><button class="btn-edit" onclick="event.stopPropagation();editCase(\''+esc(c.owner)+'\','+c.rowIndex+')">Edit</button></td></tr>';
     });
-    body=filterH+tw('<thead><tr><th>Case ID</th><th>Owner</th><th>Vendor</th><th>Vertical</th><th>Date Init</th><th>Doc %</th><th>Progress</th><th>TAT Days</th><th>TAT Status</th><th>Status</th><th></th></tr></thead><tbody>'+(rows||noRec(11))+'</tbody>');
+    body=filterH+tw('<thead><tr>'+thRow('cases',[['Case ID','caseId'],['Owner','owner'],['Vendor','vendor'],['Vertical','vertical'],['Date Init','dateInit'],['Doc %','docPct'],['Progress','pctDone'],['TAT Days','tatDays'],['TAT Status','tatStatus'],['Status','caseStatus'],['','']])+'</tr></thead><tbody>'+(rows||noRec(11))+'</tbody>');
   }
   setMain(viewTools(segCtl('cases'))+secBtn('&#128203; OB CASES',fil.length+' of '+all.length,'newCase(null)',body));
 }
@@ -1038,13 +1274,14 @@ function renderMonitoring(data) {
   var owners=uniq(all.map(function(r){return r.owner;}));
   var stats =uniq(all.map(function(r){return r.status;}));
   var fil=all.filter(function(r){return(!f.owner||r.owner===f.owner)&&(!f.status||r.status===f.status);});
+  fil=applySort('monitoring',fil);
   var rows='';
   fil.forEach(function(r){
     rows+='<tr><td>'+esc(r.owner)+'</td><td>'+esc(r.seller)+'</td><td>'+esc(r.vertical)+'</td><td>'+esc(r.month)+'</td><td>'+ynPill('monitoring',r.owner,r.rowIndex,'dataCollected',r.dataCollected)+'</td><td>'+esc(r.dataDate)+'</td><td>'+ynPill('monitoring',r.owner,r.rowIndex,'followUp',r.followUp)+'</td><td>'+esc(r.followUpDate)+'</td><td>'+ynPill('monitoring',r.owner,r.rowIndex,'outcome',r.outcome)+'</td><td>'+esc(r.presentDate)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editMonitoring(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
   });
   var filterH='<div class="filters">'+mkFsel(owners,f.owner,'Owner',"applyFilter('monitoring','owner',this.value)")+mkFsel(stats,f.status,'Status',"applyFilter('monitoring','status',this.value)")+'</div>';
   setMain(viewTools()+secBtn('&#128065; MONITORING',fil.length+' records','newMonitoring(null)',
-    filterH+tw('<thead><tr><th>Owner</th><th>Seller</th><th>Vertical</th><th>Month</th><th>Data Coll.</th><th>Data Date</th><th>Follow-up</th><th>F/U Date</th><th>Outcome</th><th>Present Date</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(rows||noRec(13))+'</tbody>')));
+    filterH+tw('<thead><tr>'+thRow('monitoring',[['Owner','owner'],['Seller','seller'],['Vertical','vertical'],['Month','month'],['Data Coll.',''],['Data Date','dataDate'],['Follow-up',''],['F/U Date','followUpDate'],['Outcome',''],['Present Date','presentDate'],['Status','status'],['Remarks',''],['','']])+'</tr></thead><tbody>'+(rows||noRec(13))+'</tbody>')));
 }
 
 // ── THIRD PARTY ───────────────────────────────────────────
@@ -1053,13 +1290,14 @@ function renderThirdParty(data) {
   var owners=uniq(all.map(function(r){return r.owner;}));
   var stats =uniq(all.map(function(r){return r.status;}));
   var fil=all.filter(function(r){return(!f.owner||r.owner===f.owner)&&(!f.status||r.status===f.status);});
+  fil=applySort('thirdparty',fil);
   var rows='';
   fil.forEach(function(r){
     rows+='<tr><td>'+esc(r.owner)+'</td><td>'+esc(r.tpName)+'</td><td>'+esc(r.caseRef)+'</td><td>'+esc(r.vertical)+'</td><td>'+esc(r.assignedDate)+'</td><td>'+ynPill('thirdparty',r.owner,r.rowIndex,'reportRcvd',r.reportRcvd)+'</td><td>'+esc(r.reportDate)+'</td><td>'+ynPill('thirdparty',r.owner,r.rowIndex,'billRcvd',r.billRcvd)+'</td><td>'+ynPill('thirdparty',r.owner,r.rowIndex,'billValid',r.billValid)+'</td><td>'+esc(r.billDate)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editThirdParty(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
   });
   var filterH='<div class="filters">'+mkFsel(owners,f.owner,'Owner',"applyFilter('thirdparty','owner',this.value)")+mkFsel(stats,f.status,'Status',"applyFilter('thirdparty','status',this.value)")+'</div>';
   setMain(viewTools()+secBtn('&#129309; THIRD PARTY',fil.length+' records','newThirdParty(null)',
-    filterH+tw('<thead><tr><th>Owner</th><th>3P Name</th><th>Case/Bill Ref</th><th>Vertical</th><th>Assigned</th><th>Report</th><th>Rpt Date</th><th>Bill</th><th>Bill Valid</th><th>Bill Date</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(rows||noRec(13))+'</tbody>')));
+    filterH+tw('<thead><tr>'+thRow('thirdparty',[['Owner','owner'],['3P Name','tpName'],['Case/Bill Ref','caseRef'],['Vertical','vertical'],['Assigned','assignedDate'],['Report',''],['Rpt Date','reportDate'],['Bill',''],['Bill Valid',''],['Bill Date','billDate'],['Status','status'],['Remarks',''],['','']])+'</tr></thead><tbody>'+(rows||noRec(13))+'</tbody>')));
 }
 
 // ── PROJECTS ──────────────────────────────────────────────
@@ -1068,6 +1306,7 @@ function renderProjects(data) {
   var owners=uniq(all.map(function(r){return r.owner;}));
   var stats =uniq(all.map(function(r){return r.status;}));
   var fil=all.filter(function(r){return(!f.owner||r.owner===f.owner)&&(!f.status||r.status===f.status);});
+  fil=applySort('projects',fil);
   var filterH='<div class="filters">'+mkFsel(owners,f.owner,'Owner',"applyFilter('projects','owner',this.value)")+mkFsel(stats,f.status,'Status',"applyFilter('projects','status',this.value)")+'</div>';
   var body;
   if (state.layout.projects==='board') {
@@ -1077,7 +1316,7 @@ function renderProjects(data) {
     fil.forEach(function(r){
       rows+='<tr><td>'+avatar(r.owner)+'</td><td>'+esc(r.description)+'</td><td>'+esc(r.category)+'</td><td>'+esc(r.dateAssigned)+'</td><td>'+esc(r.targetDate)+'</td><td>'+datePill(r.owner,r.rowIndex,'actualDate',r.actualDate)+'</td><td>'+fmt(r.daysOpen)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editTask(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
     });
-    body=filterH+tw('<thead><tr><th>Owner</th><th>Task</th><th>Category</th><th>Assigned</th><th>Target</th><th>Actual</th><th>Days Open</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(rows||noRec(10))+'</tbody>');
+    body=filterH+tw('<thead><tr>'+thRow('projects',[['Owner','owner'],['Task','description'],['Category','category'],['Assigned','dateAssigned'],['Target','targetDate'],['Actual','actualDate'],['Days Open','daysOpen'],['Status','status'],['Remarks',''],['','']])+'</tr></thead><tbody>'+(rows||noRec(10))+'</tbody>');
   }
   setMain(viewTools(segCtl('projects'))+secBtn('&#128196; PROJECTS &amp; OTHER TASKS',fil.length+' tasks','newTask(null)',body));
 }
@@ -1413,11 +1652,28 @@ function tw(inner) { return '<div class="table-wrap"><table>'+inner+'</table></d
 function dc(lbl,val) { return '<div class="detail-cell"><div class="dc-lbl">'+lbl+'</div><div class="dc-val">'+esc(String(fmt(val)))+'</div></div>'; }
 function sumCard(val,lbl,color) { return '<div class="sum-card"><div class="sum-val" style="color:'+color+'">'+fmt(val)+'</div><div class="sum-lbl">'+lbl+'</div></div>'; }
 function pCard(val,lbl) { return '<div class="perf-card"><div class="perf-val">'+fmt(val)+'</div><div class="perf-lbl">'+lbl+'</div></div>'; }
-function noRec(cols) { return '<tr><td colspan="'+cols+'" style="text-align:center;color:#90a4ae;padding:16px;">No records</td></tr>'; }
+function noRec(cols) { return '<tr><td colspan="'+cols+'"><div class="empty"><div class="empty-ico">&#128450;</div>No records yet<div class="empty-sub">Use the + Add button above to create the first one</div></div></td></tr>'; }
 
 // ── Bootstrap ─────────────────────────────────────────────
 window.onload = function() {
-  document.getElementById('login-email').focus();
+  try { var lay=JSON.parse(localStorage.getItem('obp_layout')||'null'); if(lay&&lay.cases) state.layout=lay; } catch(e) {}
+  document.addEventListener('keydown', function(e) {
+    if ((e.ctrlKey||e.metaKey) && String(e.key).toLowerCase()==='k') {
+      e.preventDefault();
+      if (state.currentUser) openCmdk();
+    } else if (e.key==='Escape') {
+      closeCmdk();
+      if (document.getElementById('modal').classList.contains('open')) closeModal();
+    }
+  });
+  var u=_loadSession();
+  if (u) {
+    state.currentUser=u;
+    document.getElementById('login-screen').style.display='none';
+    _setupForUser(u);
+  } else {
+    document.getElementById('login-email').focus();
+  }
 };
 </script>
 </body>
