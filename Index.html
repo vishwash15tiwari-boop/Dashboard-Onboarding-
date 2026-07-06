@@ -78,6 +78,39 @@
     .btn-edit { background: none; border: 1px solid #b0bec5; color: #546e7a; padding: 2px 8px; border-radius: 3px; font-size: 10px; cursor: pointer; }
     .btn-edit:hover { border-color: #1a237e; color: #1a237e; }
 
+    /* Inline quick-edit pills */
+    .pill-sel { appearance: none; -webkit-appearance: none; border: 1px solid #cfd8dc; border-radius: 10px; padding: 2px 18px 2px 10px; font-size: 10px; font-weight: 700; font-family: inherit; cursor: pointer; color: #546e7a; background: #f5f5f5 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="5"><path d="M0 0l4 5 4-5z" fill="%23607d8b"/></svg>') no-repeat right 6px center; }
+    .pill-sel.v-y { background-color: #e8f5e9; color: #1b5e20; border-color: #a5d6a7; }
+    .pill-sel.v-n { background-color: #ffebee; color: #b71c1c; border-color: #ef9a9a; }
+    .pill-sel:disabled { opacity: .5; cursor: wait; }
+    .pill-date { border: 1px solid #cfd8dc; border-radius: 4px; font-size: 10px; padding: 2px 4px; font-family: inherit; color: #37474f; }
+    .pill-date:disabled { opacity: .5; }
+
+    /* Rollout status bar */
+    .roll-wrap { background: #fff; border-radius: 0 0 8px 8px; padding: 14px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .roll-bar { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: #eceff1; }
+    .roll-seg { height: 100%; transition: width .3s; }
+    .roll-legend { display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; font-size: 10px; color: #546e7a; font-weight: 600; }
+    .roll-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+
+    /* View toolbar + toast */
+    .view-tools { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 10px; }
+    .tool-btn { background: #fff; border: 1px solid #b0bec5; color: #37474f; padding: 4px 10px; border-radius: 4px; font-size: 10px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .tool-btn:hover { border-color: #1a237e; color: #1a237e; }
+    .toast { position: fixed; bottom: 18px; right: 18px; background: #1b5e20; color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 11px; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,.25); opacity: 0; transform: translateY(8px); transition: all .25s; z-index: 500; pointer-events: none; }
+    .toast.show { opacity: 1; transform: none; }
+    .toast.err { background: #b71c1c; }
+
+    /* Print / PDF */
+    @media print {
+      body { height: auto; overflow: visible; background: #fff; }
+      .app-header, .sidebar, .view-tools, .filters, .btn-add, .btn-edit, .refresh-btn, #login-screen, .modal-overlay, .footer, .td-act, .toast { display: none !important; }
+      .body-layout { display: block; }
+      .main { overflow: visible; padding: 0; }
+      .table-wrap { box-shadow: none; overflow: visible; }
+      .section { break-inside: avoid; }
+    }
+
     /* Filters */
     .filters { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
     .filter-lbl { font-size: 10px; color: #546e7a; font-weight: 600; }
@@ -375,6 +408,110 @@ function progBar(v) {
   return '<div class="prog-wrap"><div class="prog-fill" style="width:'+p+'%"></div></div><span style="font-size:10px;margin-left:4px;">'+p+'%</span>';
 }
 
+// ── Inline quick-edit (pill dropdowns in tables) ──────────
+function ynPill(section,owner,rowIndex,field,val) {
+  var v=String(val||'');
+  var cls=v==='Y'?' v-y':(v==='N'?' v-n':'');
+  var h='<select class="pill-sel'+cls+'" onclick="event.stopPropagation()" onchange="quickSet(\''+section+'\',\''+esc(owner)+'\','+rowIndex+',\''+field+'\',this)">';
+  ['','Y','N'].forEach(function(o){h+='<option value="'+o+'"'+(o===v?' selected':'')+'>'+(o||'&mdash;')+'</option>';});
+  return h+'</select>';
+}
+function datePill(owner,rowIndex,field,val) {
+  return '<input type="date" class="pill-date" value="'+toInputDate(val)+'" onclick="event.stopPropagation()" onchange="quickSet(\'task\',\''+esc(owner)+'\','+rowIndex+',\''+field+'\',this)">';
+}
+function quickSet(section,owner,rowIndex,field,el) {
+  el.disabled=true;
+  google.script.run
+    .withSuccessHandler(function() {
+      el.disabled=false;
+      if (el.classList.contains('pill-sel')) {
+        el.classList.remove('v-y','v-n');
+        if (el.value==='Y') el.classList.add('v-y');
+        if (el.value==='N') el.classList.add('v-n');
+      }
+      toast('Saved ✓');
+      _bgRefresh();
+    })
+    .withFailureHandler(function(e) {
+      el.disabled=false;
+      toast((e&&e.message)||'Save failed',true);
+    })
+    .quickUpdateField(section,owner,rowIndex,field,el.value);
+}
+// Silently re-fetch the current view so auto-calculated statuses update
+function _bgRefresh() {
+  var viewId=state.view,k=cKey(viewId);
+  var r=google.script.run.withSuccessHandler(function(d){
+    state.data[k]=d; setUpdated();
+    if(state.view===viewId) renderView(viewId,d);
+  }).withFailureHandler(function(){});
+  if      (viewId==='workspace')  r.getWorkspaceData(state.user);
+  else if (viewId==='monitoring') r.getMonitoringListData();
+  else if (viewId==='thirdparty') r.getThirdPartyListData();
+  else if (viewId==='projects')   r.getProjectsData();
+  else if (viewId==='cases')      r.getCasesListData();
+  else if (viewId==='case360')    r.getCase360Data(state.c360.owner,state.c360.row);
+  else if (viewId==='dashboard')  r.getDashboardData();
+  else state.data[k]=null;
+}
+
+// ── Toast notifications ───────────────────────────────────
+function toast(msg,isErr) {
+  var t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';t.className='toast';document.body.appendChild(t);}
+  t.textContent=msg;
+  t.classList.toggle('err',!!isErr);
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h=setTimeout(function(){t.classList.remove('show');},2000);
+}
+
+// ── Export & print toolbar ────────────────────────────────
+function viewTools() {
+  return '<div class="view-tools">'+
+    '<button class="tool-btn" onclick="exportCsv()">&#8595; Export CSV</button>'+
+    '<button class="tool-btn" onclick="window.print()">&#128424; Print / PDF</button>'+
+    '</div>';
+}
+var CSV_COLS = {
+  cases:      [['Case ID','caseId'],['Owner','owner'],['Vendor','vendor'],['Vertical','vertical'],['Date Init','dateInit'],['Doc %','docPct'],['% Done','pctDone'],['TAT Days','tatDays'],['TAT Status','tatStatus'],['Status','caseStatus']],
+  monitoring: [['Owner','owner'],['Seller','seller'],['Vertical','vertical'],['Month','month'],['Data Coll','dataCollected'],['Data Date','dataDate'],['Follow-up','followUp'],['F/U Date','followUpDate'],['Outcome','outcome'],['Present Date','presentDate'],['Status','status'],['Remarks','remarks']],
+  thirdparty: [['Owner','owner'],['3P Name','tpName'],['Case Ref','caseRef'],['Vertical','vertical'],['Assigned','assignedDate'],['Report','reportRcvd'],['Report Date','reportDate'],['Bill','billRcvd'],['Bill Valid','billValid'],['Bill Date','billDate'],['Status','status'],['Remarks','remarks']],
+  projects:   [['Owner','owner'],['Task','description'],['Category','category'],['Assigned','dateAssigned'],['Target','targetDate'],['Actual','actualDate'],['Days Open','daysOpen'],['Status','status'],['Remarks','remarks']]
+};
+function exportCsv() {
+  var v=state.view,d=state.data[cKey(v)];
+  if(!d){toast('No data to export yet',true);return;}
+  var rows=[];
+  function add(arr,cols){
+    rows.push(cols.map(function(c){return c[0];}));
+    (arr||[]).forEach(function(r){rows.push(cols.map(function(c){var x=r[c[1]];return x===null||x===undefined?'':x;}));});
+  }
+  function noOwner(cols){return cols.filter(function(c){return c[1]!=='owner';});}
+  if      (v==='cases')      add(d,CSV_COLS.cases);
+  else if (v==='monitoring') add(d,CSV_COLS.monitoring);
+  else if (v==='thirdparty') add(d,CSV_COLS.thirdparty);
+  else if (v==='projects')   add(d,CSV_COLS.projects);
+  else if (v==='workspace') {
+    rows.push([d.member+' — Workspace export']);
+    rows.push([]); rows.push(['OB CASES']);    add(d.cases,     noOwner(CSV_COLS.cases));
+    rows.push([]); rows.push(['MONITORING']);  add(d.monitoring,noOwner(CSV_COLS.monitoring));
+    rows.push([]); rows.push(['THIRD PARTY']); add(d.thirdParty,noOwner(CSV_COLS.thirdparty));
+    rows.push([]); rows.push(['OTHER TASKS']); add(d.tasks,     noOwner(CSV_COLS.projects));
+  }
+  else if (v==='dashboard')   add(d.members,[['Member','name'],['Total','totalCases'],['Done','completed'],['In Progress','inProgress'],['Docs Pending','docsPending'],['TAT Breaches','tatBreaches'],['Monitoring Open','monitoringOpen'],['3P Open','thirdPartyOpen'],['Tasks','otherTasks']]);
+  else if (v==='performance') add(d.members,[['Member','name'],['Total','totalCases'],['Completed','completed'],['In Progress','inProgress'],['Breaches','breaches'],['Avg TAT','avgTat'],['SLA %','slaPct']]);
+  else { toast('Export not available on this view',true); return; }
+  var csv=rows.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
+  var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='ob-platform-'+v+'-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},400);
+  toast('CSV downloaded ✓');
+}
+
 var MONTHS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
 function toInputDate(s) {
   if (!s||s==='—') return '';
@@ -532,8 +669,31 @@ function renderDashboard(data) {
   aRows.forEach(function(r){alH+='<div class="alert-row" style="background:'+r.bg+';color:'+r.fg+'"><span style="font-size:16px;">'+r.icon+'</span><span class="alert-count">'+fmt(r.n)+'</span><span>'+r.lbl+'</span></div>';});
   alH+='</div>';
 
+  // Rollout status bar (exclusive case-status distribution)
+  var rollH='';
+  if (kpi.dist) {
+    var segs=[
+      {k:'completed',  l:'Completed',   c:'#1b5e20'},
+      {k:'inProgress', l:'In Progress', c:'#0277bd'},
+      {k:'docsPending',l:'Docs Pending',c:'#e65100'},
+      {k:'notStarted', l:'Not Started', c:'#b0bec5'},
+      {k:'rejected',   l:'Rejected',    c:'#78909c'}
+    ];
+    var totalN=segs.reduce(function(a,s){return a+(kpi.dist[s.k]||0);},0);
+    var barH='',legH='';
+    segs.forEach(function(s){
+      var n=kpi.dist[s.k]||0;
+      if(totalN>0&&n>0) barH+='<div class="roll-seg" style="width:'+(n/totalN*100)+'%;background:'+s.c+'" title="'+s.l+': '+n+'"></div>';
+      legH+='<span><span class="roll-dot" style="background:'+s.c+'"></span>'+n+' '+s.l+'</span>';
+    });
+    rollH=sec('&#128640; ROLLOUT STATUS <span style="font-size:10px;opacity:.6;font-weight:400;margin-left:6px;">'+totalN+' cases</span>',
+      '<div class="roll-wrap"><div class="roll-bar">'+barH+'</div><div class="roll-legend">'+legH+'</div></div>',false);
+  }
+
   setMain(
+    viewTools()+
     sec('&#128202; LIVE KPIs',kpiH,false)+
+    rollH+
     sec('&#128101; TEAM PERFORMANCE <span style="font-size:10px;opacity:.6;font-weight:400;margin-left:6px;">(click row → workspace)</span>',
       tw('<thead><tr><th>Member</th><th>Total</th><th>Done</th><th>In Progress</th><th>Docs Pending</th><th>TAT Breaches</th><th>Monitoring Open</th><th>3P Open</th><th>Tasks</th></tr></thead><tbody>'+mRows+'</tbody>'))+
     sec('&#128203; PIPELINE BY VERTICAL',
@@ -557,17 +717,18 @@ function renderWorkspace(data) {
   });
   var mRows='';
   (data.monitoring||[]).forEach(function(m){
-    mRows+='<tr><td>'+esc(m.seller)+'</td><td>'+esc(m.vertical)+'</td><td>'+esc(m.month)+'</td><td>'+(m.dataCollected?'&#10003;':'')+'</td><td>'+esc(m.dataDate)+'</td><td>'+(m.followUp?'&#10003;':'')+'</td><td>'+esc(m.followUpDate)+'</td><td>'+badge(m.status)+'</td><td>'+esc(m.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editMonitoring(\''+esc(member)+'\','+m.rowIndex+')">Edit</button></td></tr>';
+    mRows+='<tr><td>'+esc(m.seller)+'</td><td>'+esc(m.vertical)+'</td><td>'+esc(m.month)+'</td><td>'+ynPill('monitoring',member,m.rowIndex,'dataCollected',m.dataCollected)+'</td><td>'+esc(m.dataDate)+'</td><td>'+ynPill('monitoring',member,m.rowIndex,'followUp',m.followUp)+'</td><td>'+esc(m.followUpDate)+'</td><td>'+badge(m.status)+'</td><td>'+esc(m.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editMonitoring(\''+esc(member)+'\','+m.rowIndex+')">Edit</button></td></tr>';
   });
   var tpRows='';
   (data.thirdParty||[]).forEach(function(t){
-    tpRows+='<tr><td>'+esc(t.tpName)+'</td><td>'+esc(t.caseRef)+'</td><td>'+esc(t.vertical)+'</td><td>'+esc(t.assignedDate)+'</td><td>'+(t.reportRcvd?'&#10003;':'')+'</td><td>'+esc(t.reportDate)+'</td><td>'+(t.billRcvd?'&#10003;':'')+'</td><td>'+badge(t.status)+'</td><td>'+esc(t.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editThirdParty(\''+esc(member)+'\','+t.rowIndex+')">Edit</button></td></tr>';
+    tpRows+='<tr><td>'+esc(t.tpName)+'</td><td>'+esc(t.caseRef)+'</td><td>'+esc(t.vertical)+'</td><td>'+esc(t.assignedDate)+'</td><td>'+ynPill('thirdparty',member,t.rowIndex,'reportRcvd',t.reportRcvd)+'</td><td>'+esc(t.reportDate)+'</td><td>'+ynPill('thirdparty',member,t.rowIndex,'billRcvd',t.billRcvd)+'</td><td>'+badge(t.status)+'</td><td>'+esc(t.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editThirdParty(\''+esc(member)+'\','+t.rowIndex+')">Edit</button></td></tr>';
   });
   var tkRows='';
   (data.tasks||[]).forEach(function(t){
-    tkRows+='<tr><td>'+esc(t.description)+'</td><td>'+esc(t.category)+'</td><td>'+esc(t.dateAssigned)+'</td><td>'+esc(t.targetDate)+'</td><td>'+esc(t.actualDate)+'</td><td>'+fmt(t.daysOpen)+'</td><td>'+badge(t.status)+'</td><td>'+esc(t.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editTask(\''+esc(member)+'\','+t.rowIndex+')">Edit</button></td></tr>';
+    tkRows+='<tr><td>'+esc(t.description)+'</td><td>'+esc(t.category)+'</td><td>'+esc(t.dateAssigned)+'</td><td>'+esc(t.targetDate)+'</td><td>'+datePill(member,t.rowIndex,'actualDate',t.actualDate)+'</td><td>'+fmt(t.daysOpen)+'</td><td>'+badge(t.status)+'</td><td>'+esc(t.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editTask(\''+esc(member)+'\','+t.rowIndex+')">Edit</button></td></tr>';
   });
   setMain(
+    viewTools()+
     '<h2 style="font-size:14px;font-weight:700;color:#1a237e;margin-bottom:14px;">&#128101; '+esc(member)+' &mdash; Workspace</h2>'+sumH+
     secBtn('&#128203; OB Cases','(click row for detail)','newCase(\''+esc(member)+'\')',
       tw('<thead><tr><th>Case ID</th><th>Vendor</th><th>Vertical</th><th>Date Init</th><th>Doc %</th><th>Progress</th><th>TAT Days</th><th>TAT Status</th><th>Status</th><th></th></tr></thead><tbody>'+(cRows||noRec(10))+'</tbody>'))+
@@ -596,7 +757,7 @@ function renderCases(data) {
     mkFsel(verts, f.vertical,'Vertical',"applyFilter('cases','vertical',this.value)")+
     mkFsel(stats, f.status,'Status',"applyFilter('cases','status',this.value)")+
     '</div>';
-  setMain(secBtn('&#128203; OB CASES',fil.length+' of '+all.length,'newCase(null)',
+  setMain(viewTools()+secBtn('&#128203; OB CASES',fil.length+' of '+all.length,'newCase(null)',
     filterH+tw('<thead><tr><th>Case ID</th><th>Owner</th><th>Vendor</th><th>Vertical</th><th>Date Init</th><th>Doc %</th><th>Progress</th><th>TAT Days</th><th>TAT Status</th><th>Status</th><th></th></tr></thead><tbody>'+(rows||noRec(11))+'</tbody>')));
 }
 
@@ -631,18 +792,23 @@ function renderCase360(data) {
       dc('Decision',fmt(c.decision))+dc('Owner',c.owner)+dc('Case Status',c.caseStatus)+
       '</div>';
   } else if (state.tab360==='workflow') {
+    var lb=_STAGE_LBLS[c.vertical]||{s2:'Stage 2',s3:'Stage 3',s4:'Stage 4'};
+    var isOMP=c.vertical==='Open Marketplace';
     var steps=[
-      {lbl:'Doc Validation',done:c.docValid,   date:c.docValidDate},
-      {lbl:'Stage 2',       done:c.stage2,     date:c.stage2Date},
-      {lbl:'Stage 3',       done:c.stage3,     date:c.stage3Date},
-      {lbl:'Stage 4',       done:c.stage4,     date:c.stage4Date},
-      {lbl:'MOM',           done:c.mom,        date:c.momDate},
-      {lbl:'L1 Approval',   done:c.l1Approval, date:c.l1Date}
+      {lbl:'Doc Validation',f:'docValid',  done:c.docValid,   date:c.docValidDate},
+      {lbl:lb.s2,           f:'stage2',    done:c.stage2,     date:c.stage2Date},
+      {lbl:lb.s3,           f:'stage3',    done:c.stage3,     date:c.stage3Date},
+      {lbl:lb.s4,           f:'stage4',    done:c.stage4,     date:c.stage4Date},
+      {lbl:'MOM',           f:'mom',       done:c.mom,        date:c.momDate, hide:isOMP},
+      {lbl:'L1 Approval',   f:'l1Approval',done:c.l1Approval, date:c.l1Date}
     ];
     bodyH='';
     steps.forEach(function(s){
+      if(s.hide) return;
       var done=s.done==='Y'||s.done===true;
-      bodyH+='<div class="workflow-step"><span style="font-size:18px;">'+(done?'&#9989;':'&#9898;')+'</span><span class="ws-label">'+esc(s.lbl)+'</span><span class="ws-date">'+esc(s.date||'—')+'</span></div>';
+      bodyH+='<div class="workflow-step"><span style="font-size:18px;">'+(done?'&#9989;':'&#9898;')+'</span><span class="ws-label">'+esc(s.lbl)+'</span>'+
+        ynPill('case',c.owner,c.rowIndex,s.f,s.done)+
+        '<span class="ws-date" style="margin-left:10px;">'+esc(s.date||'—')+'</span></div>';
     });
   } else if (state.tab360==='monitoring') {
     var mR='';
@@ -670,10 +836,10 @@ function renderMonitoring(data) {
   var fil=all.filter(function(r){return(!f.owner||r.owner===f.owner)&&(!f.status||r.status===f.status);});
   var rows='';
   fil.forEach(function(r){
-    rows+='<tr><td>'+esc(r.owner)+'</td><td>'+esc(r.seller)+'</td><td>'+esc(r.vertical)+'</td><td>'+esc(r.month)+'</td><td>'+(r.dataCollected?'&#10003;':'')+'</td><td>'+esc(r.dataDate)+'</td><td>'+(r.followUp?'&#10003;':'')+'</td><td>'+esc(r.followUpDate)+'</td><td>'+(r.outcome?'&#10003;':'')+'</td><td>'+esc(r.presentDate)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editMonitoring(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
+    rows+='<tr><td>'+esc(r.owner)+'</td><td>'+esc(r.seller)+'</td><td>'+esc(r.vertical)+'</td><td>'+esc(r.month)+'</td><td>'+ynPill('monitoring',r.owner,r.rowIndex,'dataCollected',r.dataCollected)+'</td><td>'+esc(r.dataDate)+'</td><td>'+ynPill('monitoring',r.owner,r.rowIndex,'followUp',r.followUp)+'</td><td>'+esc(r.followUpDate)+'</td><td>'+ynPill('monitoring',r.owner,r.rowIndex,'outcome',r.outcome)+'</td><td>'+esc(r.presentDate)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editMonitoring(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
   });
   var filterH='<div class="filters">'+mkFsel(owners,f.owner,'Owner',"applyFilter('monitoring','owner',this.value)")+mkFsel(stats,f.status,'Status',"applyFilter('monitoring','status',this.value)")+'</div>';
-  setMain(secBtn('&#128065; MONITORING',fil.length+' records','newMonitoring(null)',
+  setMain(viewTools()+secBtn('&#128065; MONITORING',fil.length+' records','newMonitoring(null)',
     filterH+tw('<thead><tr><th>Owner</th><th>Seller</th><th>Vertical</th><th>Month</th><th>Data Coll.</th><th>Data Date</th><th>Follow-up</th><th>F/U Date</th><th>Outcome</th><th>Present Date</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(rows||noRec(13))+'</tbody>')));
 }
 
@@ -685,10 +851,10 @@ function renderThirdParty(data) {
   var fil=all.filter(function(r){return(!f.owner||r.owner===f.owner)&&(!f.status||r.status===f.status);});
   var rows='';
   fil.forEach(function(r){
-    rows+='<tr><td>'+esc(r.owner)+'</td><td>'+esc(r.tpName)+'</td><td>'+esc(r.caseRef)+'</td><td>'+esc(r.vertical)+'</td><td>'+esc(r.assignedDate)+'</td><td>'+(r.reportRcvd?'&#10003;':'')+'</td><td>'+esc(r.reportDate)+'</td><td>'+(r.billRcvd?'&#10003;':'')+'</td><td>'+(r.billValid?'&#10003;':'')+'</td><td>'+esc(r.billDate)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editThirdParty(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
+    rows+='<tr><td>'+esc(r.owner)+'</td><td>'+esc(r.tpName)+'</td><td>'+esc(r.caseRef)+'</td><td>'+esc(r.vertical)+'</td><td>'+esc(r.assignedDate)+'</td><td>'+ynPill('thirdparty',r.owner,r.rowIndex,'reportRcvd',r.reportRcvd)+'</td><td>'+esc(r.reportDate)+'</td><td>'+ynPill('thirdparty',r.owner,r.rowIndex,'billRcvd',r.billRcvd)+'</td><td>'+ynPill('thirdparty',r.owner,r.rowIndex,'billValid',r.billValid)+'</td><td>'+esc(r.billDate)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editThirdParty(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
   });
   var filterH='<div class="filters">'+mkFsel(owners,f.owner,'Owner',"applyFilter('thirdparty','owner',this.value)")+mkFsel(stats,f.status,'Status',"applyFilter('thirdparty','status',this.value)")+'</div>';
-  setMain(secBtn('&#129309; THIRD PARTY',fil.length+' records','newThirdParty(null)',
+  setMain(viewTools()+secBtn('&#129309; THIRD PARTY',fil.length+' records','newThirdParty(null)',
     filterH+tw('<thead><tr><th>Owner</th><th>3P Name</th><th>Case/Bill Ref</th><th>Vertical</th><th>Assigned</th><th>Report</th><th>Rpt Date</th><th>Bill</th><th>Bill Valid</th><th>Bill Date</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(rows||noRec(13))+'</tbody>')));
 }
 
@@ -700,10 +866,10 @@ function renderProjects(data) {
   var fil=all.filter(function(r){return(!f.owner||r.owner===f.owner)&&(!f.status||r.status===f.status);});
   var rows='';
   fil.forEach(function(r){
-    rows+='<tr><td>'+esc(r.owner)+'</td><td>'+esc(r.description)+'</td><td>'+esc(r.category)+'</td><td>'+esc(r.dateAssigned)+'</td><td>'+esc(r.targetDate)+'</td><td>'+esc(r.actualDate)+'</td><td>'+fmt(r.daysOpen)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editTask(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
+    rows+='<tr><td>'+esc(r.owner)+'</td><td>'+esc(r.description)+'</td><td>'+esc(r.category)+'</td><td>'+esc(r.dateAssigned)+'</td><td>'+esc(r.targetDate)+'</td><td>'+datePill(r.owner,r.rowIndex,'actualDate',r.actualDate)+'</td><td>'+fmt(r.daysOpen)+'</td><td>'+badge(r.status)+'</td><td>'+esc(r.remarks)+'</td><td class="td-act"><button class="btn-edit" onclick="editTask(\''+esc(r.owner)+'\','+r.rowIndex+')">Edit</button></td></tr>';
   });
   var filterH='<div class="filters">'+mkFsel(owners,f.owner,'Owner',"applyFilter('projects','owner',this.value)")+mkFsel(stats,f.status,'Status',"applyFilter('projects','status',this.value)")+'</div>';
-  setMain(secBtn('&#128196; PROJECTS &amp; OTHER TASKS',fil.length+' tasks','newTask(null)',
+  setMain(viewTools()+secBtn('&#128196; PROJECTS &amp; OTHER TASKS',fil.length+' tasks','newTask(null)',
     filterH+tw('<thead><tr><th>Owner</th><th>Task</th><th>Category</th><th>Assigned</th><th>Target</th><th>Actual</th><th>Days Open</th><th>Status</th><th>Remarks</th><th></th></tr></thead><tbody>'+(rows||noRec(10))+'</tbody>')));
 }
 
@@ -721,6 +887,7 @@ function renderPerformance(data) {
     rows+='<tr><td>'+esc(m.name)+'</td><td>'+fmt(m.totalCases)+'</td><td>'+fmt(m.completed)+'</td><td>'+fmt(m.inProgress)+'</td><td>'+fmt(m.breaches)+'</td><td>'+(m.avgTat!==null?m.avgTat:'—')+'</td><td>'+(m.slaPct!==null?m.slaPct+'%':'—')+'</td></tr>';
   });
   setMain(
+    viewTools()+
     '<div style="margin-bottom:20px;">'+perfH+'</div>'+
     sec('&#128200; MEMBER BREAKDOWN',
       tw('<thead><tr><th>Member</th><th>Total Cases</th><th>Completed</th><th>In Progress</th><th>Breaches</th><th>Avg TAT (days)</th><th>SLA %</th></tr></thead><tbody>'+rows+'</tbody>'))

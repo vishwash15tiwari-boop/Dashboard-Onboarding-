@@ -54,13 +54,17 @@ function getDashboardData() {
 
   var alerts = { breach: 0, docs: 0, tpOpen: 0, overdue: 0, monitoringOpen: 0 };
   var memberStats = [];
+  var dist = { completed: 0, inProgress: 0, docsPending: 0, notStarted: 0, rejected: 0 };
 
   SHEET_NAMES.MEMBERS.forEach(function(name) {
     var sh = ss.getSheetByName(name);
     if (!sh) return;
 
+    // One batched read per sheet (rows 1–89, cols A–W) instead of four
+    var grid = sh.getRange(1, 1, 89, 23).getValues();
+
     // ── OB Cases (rows 8–27, cols A–W) ──────────────────────
-    var obRows = sh.getRange(8, 1, 20, 23).getValues();
+    var obRows = grid.slice(7, 27);
     var totalCases = 0, completed = 0, inProgress = 0, docsPending = 0, tatBreaches = 0;
 
     obRows.forEach(function(row) {
@@ -77,6 +81,13 @@ function getDashboardData() {
       if (tatStatus  === 'Pending Docs')  { docsPending++; kpi.docsPending++; alerts.docs++;   }
       if (tatStatus  === '⚠ Breach')     { tatBreaches++; kpi.tatBreaches++; alerts.breach++; }
 
+      // Exclusive status distribution for the rollout bar
+      if      (caseStatus === 'Completed')    dist.completed++;
+      else if (caseStatus === 'Rejected')     dist.rejected++;
+      else if (caseStatus === 'Docs Pending') dist.docsPending++;
+      else if (caseStatus === 'Not Started')  dist.notStarted++;
+      else                                    dist.inProgress++;
+
       if (pipeline[vertical]) {
         pipeline[vertical].total++;
         if (caseStatus === 'In Progress') pipeline[vertical].inProgress++;
@@ -87,8 +98,8 @@ function getDashboardData() {
 
     // ── Monitoring status col (J = col 10), rows 32–46 ──────
     var monitoringOpen = 0;
-    sh.getRange(32, 10, 15, 1).getValues().forEach(function(row) {
-      if (row[0] === 'Open' || row[0] === 'In Progress' || row[0] === 'Started') {
+    grid.slice(31, 46).forEach(function(row) {
+      if (row[9] === 'Open' || row[9] === 'In Progress' || row[9] === 'Started') {
         monitoringOpen++;
         alerts.monitoringOpen++;
       }
@@ -96,15 +107,15 @@ function getDashboardData() {
 
     // ── Third Party status col (J = col 10), rows 51–65 ────
     var thirdPartyOpen = 0;
-    sh.getRange(51, 10, 15, 1).getValues().forEach(function(row) {
-      if (row[0] === 'Open') { thirdPartyOpen++; alerts.tpOpen++; }
+    grid.slice(50, 65).forEach(function(row) {
+      if (row[9] === 'Open') { thirdPartyOpen++; alerts.tpOpen++; }
     });
 
     // ── Other Tasks status col (G = col 7), rows 70–89 ─────
     var otherTasks = 0;
-    sh.getRange(70, 7, 20, 1).getValues().forEach(function(row) {
-      if (row[0] && row[0] !== '') otherTasks++;
-      if (row[0] === 'Overdue') alerts.overdue++;
+    grid.slice(69, 89).forEach(function(row) {
+      if (row[6] && row[6] !== '' && row[6] !== '—') otherTasks++;
+      if (row[6] === 'Overdue') alerts.overdue++;
     });
 
     memberStats.push({
@@ -119,6 +130,8 @@ function getDashboardData() {
       otherTasks:     otherTasks
     });
   });
+
+  kpi.dist = dist;
 
   return {
     kpi:         kpi,

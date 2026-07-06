@@ -54,8 +54,11 @@ function getWorkspaceData(memberName) {
     if (!sh) return null;
   }
 
+  // One batched read (rows 1–89, cols A–W) instead of four round-trips
+  var grid = sh.getRange(1, 1, 89, 23).getValues();
+
   var cases = [];
-  sh.getRange(8, 1, 20, 23).getValues().forEach(function(row, idx) {
+  grid.slice(7, 27).forEach(function(row, idx) {
     if (!row[0]) return;
     cases.push({
       rowIndex: 8 + idx, caseId: row[0], vendor: row[1], vertical: row[2],
@@ -65,7 +68,7 @@ function getWorkspaceData(memberName) {
   });
 
   var monitoring = [];
-  sh.getRange(32, 1, 15, 11).getValues().forEach(function(row, idx) {
+  grid.slice(31, 46).forEach(function(row, idx) {
     if (!row[0]) return;
     monitoring.push({
       rowIndex: 32 + idx, seller: row[0], vertical: row[1], month: row[2],
@@ -76,7 +79,7 @@ function getWorkspaceData(memberName) {
   });
 
   var thirdParty = [];
-  sh.getRange(51, 1, 15, 11).getValues().forEach(function(row, idx) {
+  grid.slice(50, 65).forEach(function(row, idx) {
     if (!row[0]) return;
     thirdParty.push({
       rowIndex: 51 + idx, tpName: row[0], caseRef: row[1], vertical: row[2],
@@ -87,7 +90,7 @@ function getWorkspaceData(memberName) {
   });
 
   var tasks = [];
-  sh.getRange(70, 1, 20, 8).getValues().forEach(function(row, idx) {
+  grid.slice(69, 89).forEach(function(row, idx) {
     if (!row[0]) return;
     tasks.push({
       rowIndex: 70 + idx, description: row[0], category: row[1],
@@ -306,6 +309,62 @@ function saveTaskRecord(ownerName, rowIndex, data) {
   sh.getRange(target, 8).setValue(data.remarks || '');
   SpreadsheetApp.flush();
   return { rowIndex: target, success: true };
+}
+
+// ── WRITE: Inline quick-update of a single whitelisted field ──
+// Y/N fields also stamp their paired date column with today when
+// set to 'Y' and the date is still empty, so sheet formulas
+// (status, % done, TAT) react immediately. Existing dates are
+// never overwritten or cleared.
+var QUICK_FIELDS = {
+  'case':       { rows: [8, 27],  fields: {
+    docValid:   { col: 6,  dateCol: 7  },
+    stage2:     { col: 8,  dateCol: 9  },
+    stage3:     { col: 10, dateCol: 11 },
+    stage4:     { col: 12, dateCol: 13 },
+    mom:        { col: 15, dateCol: 16 },
+    l1Approval: { col: 17, dateCol: 18 }
+  }},
+  'monitoring': { rows: [32, 46], fields: {
+    dataCollected: { col: 4, dateCol: 5 },
+    followUp:      { col: 6, dateCol: 7 },
+    outcome:       { col: 8, dateCol: 9 }
+  }},
+  'thirdparty': { rows: [51, 65], fields: {
+    reportRcvd: { col: 5, dateCol: 6 },
+    billRcvd:   { col: 7 },
+    billValid:  { col: 8, dateCol: 9 }
+  }},
+  'task':       { rows: [70, 89], fields: {
+    targetDate: { col: 4, date: true },
+    actualDate: { col: 5, date: true }
+  }}
+};
+
+function quickUpdateField(section, ownerName, rowIndex, field, value) {
+  var cfg = QUICK_FIELDS[section];
+  var map = cfg && cfg.fields[field];
+  if (!map) throw new Error('Field not editable: ' + section + '.' + field);
+  rowIndex = parseInt(rowIndex, 10);
+  if (isNaN(rowIndex) || rowIndex < cfg.rows[0] || rowIndex > cfg.rows[1]) {
+    throw new Error('Row out of range for ' + section + ': ' + rowIndex);
+  }
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sh = ss.getSheetByName(ownerName);
+  if (!sh) throw new Error('Sheet not found: ' + ownerName);
+
+  if (map.date) {
+    sh.getRange(rowIndex, map.col).setValue(parseInputDate(value));
+  } else {
+    var v = (value === 'Y' || value === 'N') ? value : '';
+    sh.getRange(rowIndex, map.col).setValue(v);
+    if (v === 'Y' && map.dateCol) {
+      var dateCell = sh.getRange(rowIndex, map.dateCol);
+      if (!dateCell.getValue()) dateCell.setValue(new Date());
+    }
+  }
+  SpreadsheetApp.flush();
+  return { success: true };
 }
 
 // ── READ: Generate next sequential Case ID ─────────────────
