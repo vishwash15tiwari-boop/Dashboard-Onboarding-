@@ -331,6 +331,28 @@
     .al-action { color: var(--ink); flex-shrink: 0; width: 175px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .al-detail { color: var(--ink-2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
 
+    /* ── Assign Task page ───────────────────────────────── */
+    .assign-split { display: grid; grid-template-columns: 1fr 300px; gap: 18px; align-items: start; }
+    @media (max-width: 900px) { .assign-split { grid-template-columns: 1fr; } }
+    .assign-form-card { background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-sm); padding: 22px 24px; }
+    .assign-form-card h3 { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 18px; letter-spacing: -.1px; }
+    .assign-sidebar { display: flex; flex-direction: column; gap: 10px; }
+    .wl-card { background: var(--surface); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 12px 15px; cursor: pointer; transition: transform .15s, box-shadow .15s; display: flex; align-items: center; gap: 11px; }
+    .wl-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .wl-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .wl-name { font-size: 12px; font-weight: 700; color: var(--ink); flex: 1; }
+    .wl-stats { display: flex; gap: 8px; font-size: 10px; font-weight: 600; }
+    .wl-open { color: var(--accent); }
+    .wl-over { color: var(--crit); }
+    .assign-btn { background: var(--brand); color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: filter .15s, transform .1s; margin-top: 10px; }
+    .assign-btn:hover { filter: brightness(1.15); }
+    .assign-btn:active { transform: scale(.985); }
+    .assign-btn:disabled { opacity: .6; cursor: not-allowed; }
+    .cat-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+    .cat-chip { background: var(--hover); border: 1px solid var(--line-strong); border-radius: 20px; padding: 2px 10px; font-size: 10px; font-weight: 600; color: var(--ink-2); cursor: pointer; transition: all .12s; white-space: nowrap; }
+    .cat-chip:hover { background: var(--tag-blue-bg); color: var(--tag-blue-ink); border-color: transparent; }
+    .assign-recent { background: var(--surface); border-radius: 10px; box-shadow: var(--shadow-sm); margin-top: 18px; overflow: hidden; }
+
     /* ── Print / PDF ────────────────────────────────────── */
     @media print {
       body { height: auto; overflow: visible; background: #fff; }
@@ -418,6 +440,7 @@
     <div class="nav-item"           data-v="trends"        onclick="navigate('trends')">      <span class="nav-icon">&#128202;</span> Trends</div>
     <div class="nav-item nav-admin" data-v="activitylog"   onclick="navigate('activitylog')"><span class="nav-icon">&#128220;</span> Activity Log</div>
     <div class="nav-sec nav-admin">Admin</div>
+    <div class="nav-item nav-admin" data-v="assigntask" onclick="navigate('assigntask')"><span class="nav-icon">&#128221;</span> Assign Task</div>
     <div class="nav-item nav-admin" data-v="settings"   onclick="navigate('settings')">  <span class="nav-icon">&#9881;</span> Settings</div>
     <div class="sidebar-foot">&#9889; Auto-refresh 60 s</div>
   </nav>
@@ -652,6 +675,7 @@ function _bgRefresh() {
   else if (viewId==='dashboard')   r.getDashboardData();
   else if (viewId==='activitylog') r.getActivityLogData();
   else if (viewId==='trends')      r.getTrendsData();
+  else if (viewId==='assigntask')  r.getProjectsData();
   else state.data[k]=null;
 }
 
@@ -728,7 +752,7 @@ function setUpdated() { document.getElementById('updated-time').textContent = 'U
 function navigate(viewId) {
   // Block restricted views for members
   if (state.currentUser && state.currentUser.role !== 'admin') {
-    if (viewId === 'dashboard' || viewId === 'settings' || viewId === 'activitylog') viewId = 'workspace';
+    if (viewId === 'dashboard' || viewId === 'settings' || viewId === 'activitylog' || viewId === 'assigntask') viewId = 'workspace';
   }
   // Manager account (Ajay) has no personal sheet — redirect workspace → dashboard
   if (viewId === 'workspace' && state.user === '__manager__') viewId = 'dashboard';
@@ -764,8 +788,9 @@ function goWorkspace(name) {
 
 // ── Data loading ──────────────────────────────────────────
 function cKey(v) {
-  if (v==='workspace') return 'ws_'+state.user;
-  if (v==='case360')   return 'c360_'+(state.c360?state.c360.owner+'_'+state.c360.row:'x');
+  if (v==='workspace')  return 'ws_'+state.user;
+  if (v==='case360')    return 'c360_'+(state.c360?state.c360.owner+'_'+state.c360.row:'x');
+  if (v==='assigntask') return 'projects';
   return v;
 }
 
@@ -801,6 +826,7 @@ function loadView(viewId) {
   else if (viewId==='settings')     r.getSettingsData();
   else if (viewId==='activitylog')  r.getActivityLogData();
   else if (viewId==='trends')       r.getTrendsData();
+  else if (viewId==='assigntask')   r.getProjectsData();
 }
 
 function renderView(v,d) {
@@ -815,6 +841,7 @@ function renderView(v,d) {
   else if (v==='settings')     renderSettings(d);
   else if (v==='activitylog')  renderActivityLog(d);
   else if (v==='trends')       renderTrends(d);
+  else if (v==='assigntask')   renderAssignTask(d);
 }
 
 // ── Filter helpers ────────────────────────────────────────
@@ -900,6 +927,7 @@ function cmdkActions() {
     { ico:'&#128200;', lbl:'Go to Performance',                     run:function(){navigate('performance');} },
     { ico:'&#9881;',   lbl:'Go to Settings',           admin:true,  run:function(){navigate('settings');} },
     { ico:'&#128202;', lbl:'Go to Trends',                          run:function(){navigate('trends');} },
+    { ico:'&#128221;', lbl:'Go to Assign Task',         admin:true,  run:function(){navigate('assigntask');} },
     { ico:'&#128220;', lbl:'Go to Activity Log',        admin:true,  run:function(){navigate('activitylog');} },
     { ico:'&#9875;',   lbl:'Keyboard shortcuts',                    run:openShortcuts },
     { ico:'&#10133;',  lbl:'New OB Case',                           run:function(){newCase(defaultOwner());} },
@@ -1723,6 +1751,140 @@ function dc(lbl,val) { return '<div class="detail-cell"><div class="dc-lbl">'+lb
 function sumCard(val,lbl,color) { return '<div class="sum-card"><div class="sum-val" style="color:'+color+'">'+fmt(val)+'</div><div class="sum-lbl">'+lbl+'</div></div>'; }
 function pCard(val,lbl) { return '<div class="perf-card"><div class="perf-val">'+fmt(val)+'</div><div class="perf-lbl">'+lbl+'</div></div>'; }
 function noRec(cols) { return '<tr><td colspan="'+cols+'"><div class="empty"><div class="empty-ico">&#128450;</div>No records yet<div class="empty-sub">Use the + Add button above to create the first one</div></div></td></tr>'; }
+
+// ── ASSIGN TASK ───────────────────────────────────────────
+var CAT_SUGGESTIONS = ['MIS Report','Follow-up','Data Collection','Verification','Coordination','SOP Update','Monitoring','Review','Documentation','Client Call'];
+
+function renderAssignTask(data) {
+  var all = data || [];
+  var wl = {};
+  MEMBERS.forEach(function(m) { wl[m] = { open:0, overdue:0, total:0 }; });
+  all.forEach(function(t) {
+    if (!wl[t.owner]) return;
+    wl[t.owner].total++;
+    if (t.status === 'Open')    wl[t.owner].open++;
+    if (t.status === 'Overdue') wl[t.owner].overdue++;
+  });
+
+  var today = new Date().toISOString().slice(0,10);
+  var catChips = CAT_SUGGESTIONS.map(function(c) {
+    return '<span class="cat-chip" onclick="document.getElementById(\'at-cat\').value=\''+esc(c)+'\'">'+esc(c)+'</span>';
+  }).join('');
+
+  var formH =
+    '<div class="assign-form-card">'+
+    '<h3>&#128221; New Task Assignment</h3>'+
+    '<div class="form-grid">'+
+    '<div class="form-row span2"><label class="form-label">Assign To <span style="color:var(--crit)">*</span></label>'+
+    '<select class="form-inp" id="at-owner">'+
+    '<option value="">— Select team member —</option>'+
+    MEMBERS.map(function(m){return '<option value="'+esc(m)+'">'+esc(m)+'</option>';}).join('')+
+    '</select></div>'+
+    '<div class="form-row span2"><label class="form-label">Task Description <span style="color:var(--crit)">*</span></label>'+
+    '<textarea class="form-inp" id="at-desc" rows="3" placeholder="Describe the task clearly and specifically…"></textarea></div>'+
+    '<div class="form-row"><label class="form-label">Category</label>'+
+    '<input class="form-inp" id="at-cat" placeholder="e.g. MIS Report" autocomplete="off">'+
+    '<div class="cat-chips">'+catChips+'</div></div>'+
+    '<div class="form-row"><label class="form-label">Priority</label>'+
+    '<select class="form-inp" id="at-priority">'+
+    '<option value="">— None —</option>'+
+    '<option value="High">&#128308; High</option>'+
+    '<option value="Medium" selected>&#128992; Medium</option>'+
+    '<option value="Low">&#128994; Low</option>'+
+    '</select></div>'+
+    '<div class="form-row"><label class="form-label">Date Assigned</label>'+
+    '<input class="form-inp" type="date" id="at-dateAssigned" value="'+today+'"></div>'+
+    '<div class="form-row"><label class="form-label">Target Completion</label>'+
+    '<input class="form-inp" type="date" id="at-targetDate"></div>'+
+    '<div class="form-row span2"><label class="form-label">Remarks / Instructions</label>'+
+    '<textarea class="form-inp" id="at-remarks" rows="2" placeholder="Any additional context, reference links, or specific instructions…"></textarea></div>'+
+    '</div>'+
+    '<button class="assign-btn" id="at-btn" onclick="submitAssignTask()">&#128221; Assign Task</button>'+
+    '</div>';
+
+  var sideH =
+    '<div class="assign-sidebar">'+
+    '<div style="font-size:9.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.6px;padding:2px 2px 8px;">Team Workload</div>'+
+    MEMBERS.map(function(m) {
+      var w = wl[m], c = MEMBER_CLR[m]||'#9b9a97';
+      return '<div class="wl-card" onclick="goWorkspace(\''+esc(m)+'\')">'+
+        '<span class="wl-dot" style="background:'+c+'"></span>'+
+        '<span class="wl-name">'+esc(m)+'</span>'+
+        '<div class="wl-stats">'+
+        '<span class="wl-open">'+w.open+' open</span>'+
+        (w.overdue?'<span class="wl-over">'+w.overdue+' overdue</span>':'')+
+        '</div></div>';
+    }).join('')+
+    '</div>';
+
+  var open = all.filter(function(t){ return t.status !== 'Closed'; })
+    .sort(function(a,b){ return (toInputDate(b.dateAssigned)||'')>(toInputDate(a.dateAssigned)||'')?1:-1; })
+    .slice(0, 25);
+  var recRows = open.map(function(t) {
+    return '<tr class="click-row" onclick="editTask(\''+esc(t.owner)+'\','+t.rowIndex+')">'+
+      '<td>'+avatar(t.owner)+'</td>'+
+      '<td style="max-width:260px;white-space:normal;line-height:1.4;">'+esc(t.description||'')+'</td>'+
+      '<td>'+esc(t.category||'')+'</td>'+
+      '<td>'+esc(t.dateAssigned||'')+'</td>'+
+      '<td>'+esc(t.targetDate||'')+'</td>'+
+      '<td>'+fmt(t.daysOpen)+'</td>'+
+      '<td>'+badge(t.status)+'</td>'+
+      '</tr>';
+  }).join('');
+
+  setMain(
+    '<div class="page-title">&#128221; Assign Task</div>'+
+    '<div class="assign-split">'+formH+sideH+'</div>'+
+    (open.length ?
+      '<div style="margin-top:6px;font-size:9.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;padding:14px 0 8px;">Open Assignments ('+open.length+')</div>'+
+      '<div class="assign-recent">'+
+      tw('<thead><tr><th>Assignee</th><th>Task</th><th>Category</th><th>Assigned</th><th>Target</th><th>Days Open</th><th>Status</th></tr></thead><tbody>'+(recRows||noRec(7))+'</tbody>')+
+      '</div>' : '')
+  );
+}
+
+function submitAssignTask() {
+  var owner       = (document.getElementById('at-owner')||{}).value||'';
+  var desc        = ((document.getElementById('at-desc')||{}).value||'').trim();
+  var category    = ((document.getElementById('at-cat')||{}).value||'').trim();
+  var priority    = (document.getElementById('at-priority')||{}).value||'';
+  var dateAssigned= (document.getElementById('at-dateAssigned')||{}).value||'';
+  var targetDate  = (document.getElementById('at-targetDate')||{}).value||'';
+  var remarks     = ((document.getElementById('at-remarks')||{}).value||'').trim();
+
+  if (!owner)  { toast('Please select a team member.',  true); return; }
+  if (!desc)   { toast('Task description is required.', true); return; }
+
+  var fullRemarks = remarks + (priority ? (remarks ? ' | ' : '') + 'Priority: ' + priority : '');
+  var btn = document.getElementById('at-btn');
+  btn.disabled = true; btn.textContent = 'Assigning…';
+
+  google.script.run
+    .withSuccessHandler(function() {
+      btn.disabled = false; btn.textContent = '✓ Assigned!';
+      toast('Task assigned to ' + owner + ' ✓');
+      state.data.projects = null;
+      document.getElementById('at-owner').value = '';
+      document.getElementById('at-desc').value = '';
+      document.getElementById('at-cat').value = '';
+      document.getElementById('at-priority').value = 'Medium';
+      document.getElementById('at-targetDate').value = '';
+      document.getElementById('at-remarks').value = '';
+      setTimeout(function(){ btn.textContent = '\u{1F4DD} Assign Task'; loadView('assigntask'); }, 1400);
+    })
+    .withFailureHandler(function(e) {
+      btn.disabled = false; btn.textContent = '\u{1F4DD} Assign Task';
+      toast((e&&e.message)||'Assignment failed.', true);
+    })
+    .saveTaskRecord(owner, 0, {
+      description:  desc,
+      category:     category,
+      dateAssigned: dateAssigned,
+      targetDate:   targetDate,
+      actualDate:   '',
+      remarks:      fullRemarks
+    }, (state.currentUser&&state.currentUser.name)||'');
+}
 
 // ── ACTIVITY LOG ─────────────────────────────────────────
 function renderActivityLog(data) {
