@@ -332,26 +332,54 @@
     .al-detail { color: var(--ink-2); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
 
     /* ── Assign Task page ───────────────────────────────── */
-    .assign-split { display: grid; grid-template-columns: 1fr 300px; gap: 18px; align-items: start; }
-    @media (max-width: 900px) { .assign-split { grid-template-columns: 1fr; } }
-    .assign-form-card { background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-sm); padding: 22px 24px; }
-    .assign-form-card h3 { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 18px; letter-spacing: -.1px; }
-    .assign-sidebar { display: flex; flex-direction: column; gap: 10px; }
-    .wl-card { background: var(--surface); border-radius: 10px; box-shadow: var(--shadow-sm); padding: 12px 15px; cursor: pointer; transition: transform .15s, box-shadow .15s; display: flex; align-items: center; gap: 11px; }
-    .wl-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-    .wl-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
-    .wl-name { font-size: 12px; font-weight: 700; color: var(--ink); flex: 1; }
-    .wl-stats { display: flex; gap: 8px; font-size: 10px; font-weight: 600; }
-    .wl-open { color: var(--accent); }
-    .wl-over { color: var(--crit); }
-    .assign-btn { background: var(--brand); color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: filter .15s, transform .1s; margin-top: 10px; }
-    .assign-btn:hover { filter: brightness(1.15); }
-    .assign-btn:active { transform: scale(.985); }
-    .assign-btn:disabled { opacity: .6; cursor: not-allowed; }
-    .cat-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
-    .cat-chip { background: var(--hover); border: 1px solid var(--line-strong); border-radius: 20px; padding: 2px 10px; font-size: 10px; font-weight: 600; color: var(--ink-2); cursor: pointer; transition: all .12s; white-space: nowrap; }
-    .cat-chip:hover { background: var(--tag-blue-bg); color: var(--tag-blue-ink); border-color: transparent; }
-    .assign-recent { background: var(--surface); border-radius: 10px; box-shadow: var(--shadow-sm); margin-top: 18px; overflow: hidden; }
+    .at-overview { background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-sm); margin-bottom: 18px; overflow: hidden; }
+    .at-ov-inner { display: flex; align-items: stretch; }
+    .at-ov-left  { flex: 1; padding: 22px 28px; background: linear-gradient(135deg, #023c2a 0%, #049769 100%); color: #fff; }
+    .at-ov-label { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; background: rgba(255,255,255,.22); border-radius: 20px; padding: 3px 12px; margin-bottom: 14px; }
+    .at-rollout-hd { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
+    .at-rollout-count { font-size: 20px; font-weight: 700; letter-spacing: -.3px; }
+    .at-rl-wrap { display: flex; align-items: center; gap: 5px; font-size: 10px; opacity: .85; }
+    .at-rl-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .at-roll-bar { height: 9px; background: rgba(255,255,255,.25); border-radius: 5px; overflow: hidden; display: flex; margin-bottom: 8px; }
+    .at-roll-seg { height: 100%; transition: width .4s ease; min-width: 0; }
+    .at-roll-stats { font-size: 11px; font-weight: 600; display: flex; gap: 16px; flex-wrap: wrap; opacity: .9; }
+    .at-ov-right { flex-shrink: 0; display: flex; align-items: center; background: var(--surface); border-left: 1px solid var(--line); }
+    .at-kpi { display: flex; flex-direction: column; align-items: center; padding: 10px 20px; border-right: 1px solid var(--line); }
+    .at-kpi:last-child { border-right: none; }
+    .at-kpi-val { font-size: 30px; font-weight: 700; line-height: 1.1; letter-spacing: -1px; color: var(--ink); }
+    .at-kpi-lbl { font-size: 9px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .5px; margin-top: 4px; white-space: nowrap; }
+    .at-list-section { background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-sm); overflow: hidden; }
+    .at-toolbar { display: flex; align-items: flex-start; justify-content: space-between; padding: 16px 20px 12px; border-bottom: 1px solid var(--line); gap: 12px; flex-wrap: wrap; }
+    .at-title-block { flex: 1; min-width: 0; }
+    .at-main-title { font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: -.2px; margin-bottom: 6px; }
+    .at-sub-cats { display: flex; gap: 5px; flex-wrap: wrap; }
+    .at-cat-pill { background: var(--hover); border: 1px solid var(--line); border-radius: 20px; padding: 2px 9px; font-size: 10px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+    .at-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+    .at-filter-sel { background: var(--surface); border: 1px solid var(--line-strong); border-radius: 6px; padding: 5px 9px; font-size: 11px; font-family: inherit; color: var(--ink); cursor: pointer; }
+    .at-action-btn { background: transparent; border: 1px solid var(--line-strong); border-radius: 7px; padding: 6px 13px; font-size: 11px; font-weight: 600; color: var(--ink-2); cursor: pointer; font-family: inherit; transition: all .12s; }
+    .at-action-btn:hover { background: var(--hover); color: var(--ink); }
+    .at-assign-btn { background: var(--brand); color: #fff; border: none; border-radius: 7px; padding: 7px 16px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: filter .15s; white-space: nowrap; }
+    .at-assign-btn:hover { filter: brightness(1.15); }
+    .at-row-num { font-size: 11px; color: var(--ink-3); font-weight: 600; text-align: center; width: 36px; }
+    .at-rank { display: inline-block; border-radius: 20px; padding: 2px 9px; font-size: 10px; font-weight: 700; letter-spacing: .2px; }
+    .at-rank-hi   { background: #fde8e8; color: #c0392b; }
+    .at-rank-med  { background: #e8f0ff; color: #024C8A; }
+    .at-rank-lo   { background: #e8f5e9; color: #2e7d32; }
+    .at-rank-none { background: var(--hover); color: var(--ink-3); }
+    .at-task-name { font-weight: 600; font-size: 12px; color: var(--ink); max-width: 240px; white-space: normal; line-height: 1.4; }
+    .at-cat { font-size: 11px; color: var(--ink-2); }
+    .at-av-name { font-size: 11px; font-weight: 600; margin-left: 5px; vertical-align: middle; }
+    .at-row--open    td:first-child { border-left: 3px solid var(--accent); padding-left: 9px; }
+    .at-row--overdue td:first-child { border-left: 3px solid var(--crit); padding-left: 9px; }
+    .at-row--closed  td:first-child { border-left: 3px solid var(--good); padding-left: 9px; }
+    .at-row--closed td { opacity: .6; }
+    .at-row--closed:hover td { opacity: 1; }
+    @media (max-width: 900px) {
+      .at-ov-inner { flex-direction: column; }
+      .at-ov-right { border-left: none; border-top: 1px solid var(--line); justify-content: space-around; }
+      .at-toolbar { flex-direction: column; }
+      .at-actions { width: 100%; justify-content: flex-end; }
+    }
 
     /* ── Print / PDF ────────────────────────────────────── */
     @media print {
@@ -1757,89 +1785,137 @@ var CAT_SUGGESTIONS = ['MIS Report','Follow-up','Data Collection','Verification'
 
 function renderAssignTask(data) {
   var all = data || [];
-  var wl = {};
-  MEMBERS.forEach(function(m) { wl[m] = { open:0, overdue:0, total:0 }; });
-  all.forEach(function(t) {
-    if (!wl[t.owner]) return;
-    wl[t.owner].total++;
-    if (t.status === 'Open')    wl[t.owner].open++;
-    if (t.status === 'Overdue') wl[t.owner].overdue++;
-  });
 
-  var today = new Date().toISOString().slice(0,10);
-  var catChips = CAT_SUGGESTIONS.map(function(c) {
-    return '<span class="cat-chip" onclick="document.getElementById(\'at-cat\').value=\''+esc(c)+'\'">'+esc(c)+'</span>';
+  // Aggregate stats
+  var totOpen=0, totOverdue=0, totClosed=0;
+  var catCount={};
+  all.forEach(function(t) {
+    if (t.status==='Open')    totOpen++;
+    if (t.status==='Overdue') totOverdue++;
+    if (t.status==='Closed')  totClosed++;
+    var c = t.category||'Other';
+    catCount[c] = (catCount[c]||0)+1;
+  });
+  var totAll = all.length;
+
+  // Bar segment widths — guarantee at least 2% width when non-zero so segments show
+  function pct(n) { return totAll ? Math.max(n?2:0, Math.round(n/totAll*100))+'%' : '0%'; }
+
+  // Overview card
+  var ovCard =
+    '<div class="at-overview">'+
+    '<div class="at-ov-inner">'+
+    '<div class="at-ov-left">'+
+    '<span class="at-ov-label">Task Tracker</span>'+
+    '<div class="at-rollout-hd">'+
+    '<span class="at-rollout-count">'+totAll+' TASKS</span>'+
+    '<span class="at-rl-wrap">'+
+    '<span class="at-rl-dot" style="background:rgba(255,255,255,.75)"></span><span>Closed</span>&nbsp;&nbsp;'+
+    '<span class="at-rl-dot" style="background:rgba(160,210,255,.8)"></span><span>Open</span>&nbsp;&nbsp;'+
+    '<span class="at-rl-dot" style="background:rgba(255,160,160,.8)"></span><span>Overdue</span>'+
+    '</span>'+
+    '</div>'+
+    '<div class="at-roll-bar">'+
+    '<div class="at-roll-seg" style="width:'+pct(totClosed)+';background:rgba(255,255,255,.85)" title="Closed: '+totClosed+'"></div>'+
+    '<div class="at-roll-seg" style="width:'+pct(totOpen)+';background:rgba(120,190,255,.75)" title="Open: '+totOpen+'"></div>'+
+    '<div class="at-roll-seg" style="width:'+pct(totOverdue)+';background:rgba(255,100,100,.8)" title="Overdue: '+totOverdue+'"></div>'+
+    '</div>'+
+    '<div class="at-roll-stats">'+
+    '<span>'+totClosed+' Closed</span>'+
+    '<span>'+totOpen+' Open</span>'+
+    '<span>'+totOverdue+' Overdue</span>'+
+    '</div>'+
+    '</div>'+
+    '<div class="at-ov-right">'+
+    '<div class="at-kpi"><span class="at-kpi-val">'+totAll+'</span><span class="at-kpi-lbl">Total</span></div>'+
+    '<div class="at-kpi"><span class="at-kpi-val" style="color:var(--accent)">'+totOpen+'</span><span class="at-kpi-lbl">Open</span></div>'+
+    '<div class="at-kpi"><span class="at-kpi-val" style="color:var(--crit)">'+totOverdue+'</span><span class="at-kpi-lbl">Overdue</span></div>'+
+    '<div class="at-kpi"><span class="at-kpi-val" style="color:var(--good)">'+totClosed+'</span><span class="at-kpi-lbl">Closed</span></div>'+
+    '</div>'+
+    '</div>'+
+    '</div>';
+
+  // Category subtitle pills
+  var catSub = Object.keys(catCount).sort().map(function(c) {
+    return '<span class="at-cat-pill">'+esc(c)+' · '+catCount[c]+'</span>';
   }).join('');
 
-  var formH =
-    '<div class="assign-form-card">'+
-    '<h3>&#128221; New Task Assignment</h3>'+
-    '<div class="form-grid">'+
-    '<div class="form-row span2"><label class="form-label">Assign To <span style="color:var(--crit)">*</span></label>'+
-    '<select class="form-inp" id="at-owner">'+
-    '<option value="">— Select team member —</option>'+
-    MEMBERS.map(function(m){return '<option value="'+esc(m)+'">'+esc(m)+'</option>';}).join('')+
-    '</select></div>'+
-    '<div class="form-row span2"><label class="form-label">Task Description <span style="color:var(--crit)">*</span></label>'+
-    '<textarea class="form-inp" id="at-desc" rows="3" placeholder="Describe the task clearly and specifically…"></textarea></div>'+
-    '<div class="form-row"><label class="form-label">Category</label>'+
-    '<input class="form-inp" id="at-cat" placeholder="e.g. MIS Report" autocomplete="off">'+
-    '<div class="cat-chips">'+catChips+'</div></div>'+
-    '<div class="form-row"><label class="form-label">Priority</label>'+
-    '<select class="form-inp" id="at-priority">'+
-    '<option value="">— None —</option>'+
-    '<option value="High">&#128308; High</option>'+
-    '<option value="Medium" selected>&#128992; Medium</option>'+
-    '<option value="Low">&#128994; Low</option>'+
-    '</select></div>'+
-    '<div class="form-row"><label class="form-label">Date Assigned</label>'+
-    '<input class="form-inp" type="date" id="at-dateAssigned" value="'+today+'"></div>'+
-    '<div class="form-row"><label class="form-label">Target Completion</label>'+
-    '<input class="form-inp" type="date" id="at-targetDate"></div>'+
-    '<div class="form-row span2"><label class="form-label">Remarks / Instructions</label>'+
-    '<textarea class="form-inp" id="at-remarks" rows="2" placeholder="Any additional context, reference links, or specific instructions…"></textarea></div>'+
-    '</div>'+
-    '<button class="assign-btn" id="at-btn" onclick="submitAssignTask()">&#128221; Assign Task</button>'+
-    '</div>';
+  // Persist filter values across re-renders
+  var fltStatus = (document.getElementById('at-flt-status')||{}).value||'';
+  var fltMember = (document.getElementById('at-flt-member')||{}).value||'';
 
-  var sideH =
-    '<div class="assign-sidebar">'+
-    '<div style="font-size:9.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.6px;padding:2px 2px 8px;">Team Workload</div>'+
-    MEMBERS.map(function(m) {
-      var w = wl[m], c = MEMBER_CLR[m]||'#9b9a97';
-      return '<div class="wl-card" onclick="goWorkspace(\''+esc(m)+'\')">'+
-        '<span class="wl-dot" style="background:'+c+'"></span>'+
-        '<span class="wl-name">'+esc(m)+'</span>'+
-        '<div class="wl-stats">'+
-        '<span class="wl-open">'+w.open+' open</span>'+
-        (w.overdue?'<span class="wl-over">'+w.overdue+' overdue</span>':'')+
-        '</div></div>';
-    }).join('')+
-    '</div>';
+  // Sort: Overdue → Open → Closed, newest first within group
+  var SO = {Overdue:0, Open:1, Closed:2};
+  var sorted = all.slice().sort(function(a,b) {
+    var d = (SO[a.status]||1)-(SO[b.status]||1);
+    if (d!==0) return d;
+    return (toInputDate(b.dateAssigned)||'')>(toInputDate(a.dateAssigned)||'') ? 1 : -1;
+  });
+  if (fltStatus) sorted = sorted.filter(function(t){ return t.status===fltStatus; });
+  if (fltMember) sorted = sorted.filter(function(t){ return t.owner===fltMember; });
 
-  var open = all.filter(function(t){ return t.status !== 'Closed'; })
-    .sort(function(a,b){ return (toInputDate(b.dateAssigned)||'')>(toInputDate(a.dateAssigned)||'')?1:-1; })
-    .slice(0, 25);
-  var recRows = open.map(function(t) {
-    return '<tr class="click-row" onclick="editTask(\''+esc(t.owner)+'\','+t.rowIndex+')">'+
-      '<td>'+avatar(t.owner)+'</td>'+
-      '<td style="max-width:260px;white-space:normal;line-height:1.4;">'+esc(t.description||'')+'</td>'+
-      '<td>'+esc(t.category||'')+'</td>'+
-      '<td>'+esc(t.dateAssigned||'')+'</td>'+
-      '<td>'+esc(t.targetDate||'')+'</td>'+
-      '<td>'+fmt(t.daysOpen)+'</td>'+
+  function priOf(t) { var m=(t.remarks||'').match(/Priority:\s*(High|Medium|Low)/i); return m?m[1]:''; }
+  function rankPill(p) {
+    if (p==='High')   return '<span class="at-rank at-rank-hi">High</span>';
+    if (p==='Low')    return '<span class="at-rank at-rank-lo">Low</span>';
+    if (p==='Medium') return '<span class="at-rank at-rank-med">Med</span>';
+    return '<span class="at-rank at-rank-none">—</span>';
+  }
+  function rowCls(s) { return s==='Overdue'?'at-row--overdue':s==='Closed'?'at-row--closed':'at-row--open'; }
+
+  var rows = sorted.map(function(t, i) {
+    var td = datePill(t.owner, t.rowIndex, 'targetDate', t.targetDate);
+    var ad = datePill(t.owner, t.rowIndex, 'actualDate', t.actualDate);
+    return '<tr class="'+rowCls(t.status)+'">'+
+      '<td class="at-row-num">'+(i+1)+'</td>'+
+      '<td>'+rankPill(priOf(t))+'</td>'+
+      '<td class="at-task-name">'+esc(t.description||'')+'</td>'+
+      '<td class="at-cat">'+esc(t.category||'—')+'</td>'+
+      '<td style="white-space:nowrap">'+avatar(t.owner)+'<span class="at-av-name">'+esc(t.owner||'')+'</span></td>'+
       '<td>'+badge(t.status)+'</td>'+
+      '<td style="text-align:center;font-size:11px;color:var(--ink-2)">'+(t.daysOpen!=null&&t.daysOpen!==''?fmt(t.daysOpen):'—')+'</td>'+
+      '<td>'+td+'</td>'+
+      '<td>'+ad+'</td>'+
+      '<td><button class="btn-edit" onclick="event.stopPropagation();editTask(\''+esc(t.owner)+'\','+t.rowIndex+')">Edit</button></td>'+
       '</tr>';
   }).join('');
 
+  var listSection =
+    '<div class="at-list-section">'+
+    '<div class="at-toolbar">'+
+    '<div class="at-title-block">'+
+    '<div class="at-main-title">Task Assignments</div>'+
+    (catSub ? '<div class="at-sub-cats">'+catSub+'</div>' : '')+
+    '</div>'+
+    '<div class="at-actions">'+
+    '<select id="at-flt-member" class="at-filter-sel" onchange="renderAssignTask(state.data[cKey(\'assigntask\')]||[])">'+
+    '<option value="">All Members</option>'+
+    MEMBERS.map(function(m){return '<option value="'+esc(m)+'"'+(fltMember===m?' selected':'')+'>'+esc(m)+'</option>';}).join('')+
+    '</select>'+
+    '<select id="at-flt-status" class="at-filter-sel" onchange="renderAssignTask(state.data[cKey(\'assigntask\')]||[])">'+
+    '<option value="">All Status</option>'+
+    ['Open','Overdue','Closed'].map(function(s){return '<option value="'+s+'"'+(fltStatus===s?' selected':'')+'>'+s+'</option>';}).join('')+
+    '</select>'+
+    '<button class="at-action-btn" onclick="exportAtCsv()">&#11015; Export</button>'+
+    '<button class="at-assign-btn" onclick="openTaskForm(null,null)">+ Assign Task</button>'+
+    '</div>'+
+    '</div>'+
+    '<div class="table-wrap"><table>'+
+    '<thead><tr>'+
+    '<th style="width:36px">#</th>'+
+    '<th>Priority</th><th>Task Description</th><th>Category</th>'+
+    '<th>Assignee</th><th>Status</th>'+
+    '<th style="text-align:center">Days</th>'+
+    '<th>Target</th><th>Actual</th><th></th>'+
+    '</tr></thead>'+
+    '<tbody>'+(rows||noRec(10))+'</tbody>'+
+    '</table></div>'+
+    '</div>';
+
   setMain(
     '<div class="page-title">&#128221; Assign Task</div>'+
-    '<div class="assign-split">'+formH+sideH+'</div>'+
-    (open.length ?
-      '<div style="margin-top:6px;font-size:9.5px;font-weight:700;color:var(--ink-3);text-transform:uppercase;letter-spacing:.5px;padding:14px 0 8px;">Open Assignments ('+open.length+')</div>'+
-      '<div class="assign-recent">'+
-      tw('<thead><tr><th>Assignee</th><th>Task</th><th>Category</th><th>Assigned</th><th>Target</th><th>Days Open</th><th>Status</th></tr></thead><tbody>'+(recRows||noRec(7))+'</tbody>')+
-      '</div>' : '')
+    ovCard+
+    listSection
   );
 }
 
@@ -1884,6 +1960,26 @@ function submitAssignTask() {
       actualDate:   '',
       remarks:      fullRemarks
     }, (state.currentUser&&state.currentUser.name)||'');
+}
+
+function exportAtCsv() {
+  var all = state.data[cKey('assigntask')]||[];
+  if (!all.length) { toast('No data to export', true); return; }
+  var hdr = ['#','Owner','Task Description','Category','Date Assigned','Target Date','Actual Date','Days Open','Status','Remarks'];
+  var rows = [hdr].concat(all.map(function(t,i) {
+    return [i+1, t.owner||'', t.description||'', t.category||'',
+            t.dateAssigned||'', t.targetDate||'', t.actualDate||'',
+            t.daysOpen!=null?t.daysOpen:'', t.status||'', t.remarks||''];
+  }));
+  var csv = rows.map(function(r) {
+    return r.map(function(x){ return '"'+String(x).replace(/"/g,'""')+'"'; }).join(',');
+  }).join('\r\n');
+  var blob = new Blob(['﻿'+csv], {type:'text/csv;charset=utf-8;'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'tasks-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 400);
 }
 
 // ── ACTIVITY LOG ─────────────────────────────────────────
