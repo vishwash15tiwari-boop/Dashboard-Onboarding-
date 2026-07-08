@@ -375,15 +375,16 @@
     /* ── Assign Task page ───────────────────────────────── */
     .at-overview { background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-sm); margin-bottom: 18px; overflow: hidden; }
     .at-ov-inner { display: flex; align-items: stretch; }
-    .at-ov-left  { flex: 1; padding: 22px 28px; background: linear-gradient(135deg, #023c2a 0%, #049769 100%); color: #fff; }
-    .at-ov-label { display: inline-block; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; background: rgba(255,255,255,.22); border-radius: 20px; padding: 3px 12px; margin-bottom: 14px; }
-    .at-rollout-hd { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; flex-wrap: wrap; }
-    .at-rollout-count { font-size: 20px; font-weight: 700; letter-spacing: -.3px; }
-    .at-rl-wrap { display: flex; align-items: center; gap: 5px; font-size: 10px; opacity: .85; }
+    .at-ov-left  { flex: 1; padding: 22px 28px; }
+    .at-ov-label { font-size: 9.5px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; color: var(--good); display: block; margin-bottom: 14px; }
+    .at-rollout-hd { display: flex; align-items: baseline; gap: 14px; margin-bottom: 12px; }
+    .at-roll-title { font-size: 9.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--ink-3); }
+    .at-rollout-count { font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: -.2px; }
     .at-rl-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
-    .at-roll-bar { height: 9px; background: rgba(255,255,255,.25); border-radius: 5px; overflow: hidden; display: flex; margin-bottom: 8px; }
+    .at-roll-bar { height: 12px; border-radius: 5px; overflow: hidden; display: flex; gap: 2px; background: var(--hover); margin-bottom: 12px; }
     .at-roll-seg { height: 100%; transition: width .4s ease; min-width: 0; }
-    .at-roll-stats { font-size: 11px; font-weight: 600; display: flex; gap: 16px; flex-wrap: wrap; opacity: .9; }
+    .at-roll-stats { display: flex; gap: 18px; flex-wrap: wrap; }
+    .at-roll-litem { font-size: 10.5px; color: var(--ink-2); font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px; }
     .at-ov-right { flex-shrink: 0; display: flex; align-items: center; background: var(--surface); border-left: 1px solid var(--line); }
     .at-kpi { display: flex; flex-direction: column; align-items: center; padding: 10px 20px; border-right: 1px solid var(--line); }
     .at-kpi:last-child { border-right: none; }
@@ -503,7 +504,6 @@
     <div class="nav-item"          data-v="cases"       onclick="navigate('cases')">      <span class="nav-icon">&#128203;</span> OB Cases</div>
     <div class="nav-item"          data-v="monitoring"  onclick="navigate('monitoring')"> <span class="nav-icon">&#128065;</span> Monitoring</div>
     <div class="nav-item"          data-v="thirdparty"  onclick="navigate('thirdparty')"> <span class="nav-icon">&#129309;</span> Third Party</div>
-    <div class="nav-item"          data-v="projects"    onclick="navigate('projects')">   <span class="nav-icon">&#128196;</span> Projects</div>
     <div class="nav-sec">Insights</div>
     <div class="nav-item"           data-v="performance"  onclick="navigate('performance')"> <span class="nav-icon">&#128200;</span> Performance</div>
     <div class="nav-item"           data-v="trends"        onclick="navigate('trends')">      <span class="nav-icon">&#128202;</span> Trends</div>
@@ -794,6 +794,8 @@ function exportCsv() {
   }
   else if (v==='dashboard')   add(d.members,[['Member','name'],['Total','totalCases'],['Done','completed'],['In Progress','inProgress'],['Docs Pending','docsPending'],['TAT Breaches','tatBreaches'],['Monitoring Open','monitoringOpen'],['3P Open','thirdPartyOpen'],['Tasks','otherTasks']]);
   else if (v==='performance') add(d.members,[['Member','name'],['Total','totalCases'],['Completed','completed'],['In Progress','inProgress'],['Breaches','breaches'],['Avg TAT','avgTat'],['SLA %','slaPct']]);
+  else if (v==='assigntask')  { exportAtCsv(); return; }
+  else if (v==='activitylog') add(d,[['Timestamp','ts'],['User','user'],['Action','action'],['Entity','entity'],['Details','details']]);
   else { toast('Export not available on this view',true); return; }
   var csv=rows.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
   var blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
@@ -819,6 +821,8 @@ function setUpdated() { document.getElementById('updated-time').textContent = 'U
 
 // ── Navigation ────────────────────────────────────────────
 function navigate(viewId) {
+  // Consolidate projects → assigntask (both read same data; assigntask is the enhanced view)
+  if (viewId === 'projects') viewId = 'assigntask';
   // Block restricted views for members
   if (state.currentUser && state.currentUser.role !== 'admin') {
     if (viewId === 'dashboard' || viewId === 'settings' || viewId === 'activitylog' || viewId === 'assigntask') viewId = 'workspace';
@@ -992,7 +996,6 @@ function cmdkActions() {
     { ico:'&#128203;', lbl:'Go to OB Cases',                        run:function(){navigate('cases');} },
     { ico:'&#128065;', lbl:'Go to Monitoring',                      run:function(){navigate('monitoring');} },
     { ico:'&#129309;', lbl:'Go to Third Party',                     run:function(){navigate('thirdparty');} },
-    { ico:'&#128196;', lbl:'Go to Projects',                        run:function(){navigate('projects');} },
     { ico:'&#128200;', lbl:'Go to Performance',                     run:function(){navigate('performance');} },
     { ico:'&#9881;',   lbl:'Go to Settings',           admin:true,  run:function(){navigate('settings');} },
     { ico:'&#128202;', lbl:'Go to Trends',                          run:function(){navigate('trends');} },
@@ -1880,22 +1883,18 @@ function renderAssignTask(data) {
     '<div class="at-ov-left">'+
     '<span class="at-ov-label">Task Tracker</span>'+
     '<div class="at-rollout-hd">'+
-    '<span class="at-rollout-count">'+totAll+' TASKS</span>'+
-    '<span class="at-rl-wrap">'+
-    '<span class="at-rl-dot" style="background:rgba(255,255,255,.75)"></span><span>Closed</span>&nbsp;&nbsp;'+
-    '<span class="at-rl-dot" style="background:rgba(160,210,255,.8)"></span><span>Open</span>&nbsp;&nbsp;'+
-    '<span class="at-rl-dot" style="background:rgba(255,160,160,.8)"></span><span>Overdue</span>'+
-    '</span>'+
+    '<span class="at-roll-title">Task Status</span>'+
+    '<span class="at-rollout-count">'+totAll+' Tasks</span>'+
     '</div>'+
     '<div class="at-roll-bar">'+
-    '<div class="at-roll-seg" style="width:'+pct(totClosed)+';background:rgba(255,255,255,.85)" title="Closed: '+totClosed+'"></div>'+
-    '<div class="at-roll-seg" style="width:'+pct(totOpen)+';background:rgba(120,190,255,.75)" title="Open: '+totOpen+'"></div>'+
-    '<div class="at-roll-seg" style="width:'+pct(totOverdue)+';background:rgba(255,100,100,.8)" title="Overdue: '+totOverdue+'"></div>'+
+    '<div class="at-roll-seg" style="width:'+pct(totClosed)+';background:#049769" title="Closed: '+totClosed+'"></div>'+
+    '<div class="at-roll-seg" style="width:'+pct(totOpen)+';background:#005DFF" title="Open: '+totOpen+'"></div>'+
+    '<div class="at-roll-seg" style="width:'+pct(totOverdue)+';background:#d03b3b" title="Overdue: '+totOverdue+'"></div>'+
     '</div>'+
     '<div class="at-roll-stats">'+
-    '<span>'+totClosed+' Closed</span>'+
-    '<span>'+totOpen+' Open</span>'+
-    '<span>'+totOverdue+' Overdue</span>'+
+    '<span class="at-roll-litem"><span class="at-rl-dot" style="background:#049769"></span>'+totClosed+' Closed</span>'+
+    '<span class="at-roll-litem"><span class="at-rl-dot" style="background:#005DFF"></span>'+totOpen+' Open</span>'+
+    '<span class="at-roll-litem"><span class="at-rl-dot" style="background:#d03b3b"></span>'+totOverdue+' Overdue</span>'+
     '</div>'+
     '</div>'+
     '<div class="at-ov-right">'+
@@ -2057,7 +2056,6 @@ function exportAtCsv() {
 // ── ACTIVITY LOG ─────────────────────────────────────────
 function renderActivityLog(data) {
   var rows = data || [];
-  var MEMBER_CLR = { Harshita:'#005DFF', Vamsi:'#1DC797', Naveen:'#eda100', Vishwash:'#3E7D44', Ajay:'#8460D4' };
   var h = '<div class="page-title">&#128220; Activity Log</div>';
   if (!rows.length) {
     h += '<div class="al-wrap"><div class="empty" style="padding:40px 0;"><div class="empty-ico">&#128220;</div>No activity yet<div class="empty-sub">Every create/update/edit is logged here automatically</div></div></div>';
