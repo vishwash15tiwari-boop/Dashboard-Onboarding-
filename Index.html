@@ -234,6 +234,47 @@
     .ws-label { flex: 1; font-size: 12px; font-weight: 600; color: var(--ink); }
     .ws-date { font-size: 11px; color: var(--ink-3); }
 
+    /* ── Dashboard overview card (Programme Overview style) ── */
+    .db-overview { background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 20px; }
+    .db-ov-inner { display: flex; min-height: 148px; }
+    .db-ov-left { flex: 1; padding: 22px 28px 20px; }
+    .db-ov-label { font-size: 9.5px; font-weight: 700; letter-spacing: 1.3px; text-transform: uppercase; color: var(--good); display: block; margin-bottom: 14px; }
+    .db-roll-hd { display: flex; align-items: baseline; gap: 14px; margin-bottom: 12px; }
+    .db-roll-title { font-size: 9.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--ink-3); }
+    .db-roll-count { font-size: 14px; font-weight: 700; color: var(--ink); letter-spacing: -.2px; }
+    .db-roll-bar { height: 12px; border-radius: 5px; overflow: hidden; display: flex; gap: 2px; background: var(--hover); margin-bottom: 12px; }
+    .db-roll-seg { height: 100%; min-width: 3px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+    .db-roll-legend { display: flex; gap: 18px; flex-wrap: wrap; }
+    .db-roll-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; flex-shrink: 0; }
+    .db-roll-litem { font-size: 10.5px; color: var(--ink-2); font-weight: 600; white-space: nowrap; }
+    .db-ov-right { flex-shrink: 0; width: 266px; border-left: 1px solid var(--line); display: flex; flex-direction: column; justify-content: center; }
+    .db-kpi-row { display: flex; align-items: center; padding: 13px 22px; border-bottom: 1px solid var(--line); }
+    .db-kpi-row:last-child { border-bottom: none; }
+    .db-kpi-lbl { font-size: 9px; font-weight: 700; color: var(--ink-3); letter-spacing: .6px; text-transform: uppercase; flex: 1; }
+    .db-kpi-num { font-size: 30px; font-weight: 700; letter-spacing: -1px; line-height: 1; font-variant-numeric: tabular-nums; }
+    /* Team overview card */
+    .db-team-card { background: var(--surface); border-radius: 12px; box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 20px; }
+    .db-team-hd { display: flex; align-items: center; justify-content: space-between; padding: 13px 18px; border-bottom: 1px solid var(--line); }
+    .db-team-title { font-size: 11px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: .4px; }
+    .db-team-sub { font-size: 10px; color: var(--ink-3); font-weight: 500; }
+    .db-mem-row { display: flex; align-items: center; gap: 12px; padding: 11px 18px; border-bottom: 1px solid var(--line); cursor: pointer; transition: background .12s; }
+    .db-mem-row:hover { background: var(--hover); }
+    .db-mem-row:last-child { border-bottom: none; }
+    .db-mem-name { width: 90px; flex-shrink: 0; display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; color: var(--ink); }
+    .db-mem-role { width: 130px; flex-shrink: 0; font-size: 10px; color: var(--ink-3); font-weight: 500; }
+    .db-mem-bar { flex: 1; height: 10px; border-radius: 5px; background: var(--hover); overflow: hidden; display: flex; gap: 2px; }
+    .db-mem-seg { height: 100%; min-width: 3px; border-radius: 3px; }
+    .db-mem-stats { display: flex; gap: 14px; flex-shrink: 0; width: 200px; justify-content: flex-end; }
+    .db-mem-stat { font-size: 10px; font-weight: 700; white-space: nowrap; }
+    @media (max-width: 900px) {
+      .db-ov-inner { flex-direction: column; }
+      .db-ov-right { width: 100%; border-left: none; border-top: 1px solid var(--line); flex-direction: row; }
+      .db-kpi-row { flex: 1; flex-direction: column; align-items: center; text-align: center; border-bottom: none; border-right: 1px solid var(--line); padding: 12px 8px; }
+      .db-kpi-row:last-child { border-right: none; }
+      .db-mem-role { display: none; }
+      .db-mem-stats { width: auto; }
+    }
+
     /* ── Alerts ─────────────────────────────────────────── */
     .alerts-grid { background: var(--surface); border-radius: 10px; box-shadow: var(--shadow-sm); overflow: hidden; }
     .alert-row { display: flex; align-items: center; padding: 11px 16px; gap: 12px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 600; }
@@ -1136,102 +1177,133 @@ function _updateBell(alerts) {
 
 function renderDashboard(data) {
   _updateBell(data.alerts || {});
-  var kpi=data.kpi||{};
-  function tile(ico,icoBg,v,l){return '<div class="tile"><div class="tile-ico" style="background:'+icoBg+'">'+ico+'</div><div class="tile-val">'+fmt(v)+'</div><div class="tile-lbl">'+l+'</div></div>';}
-  var tilesH='<div class="tiles">'+
-    tile('&#128203;','var(--tag-blue-bg)',  kpi.totalCases,'Total OB Cases')+
-    tile('&#9989;',  'var(--tag-green-bg)', kpi.completed,'Completed')+
-    tile('&#128260;','var(--tag-blue-bg)',  kpi.inProgress,'In Progress')+
-    tile('&#128196;','var(--tag-orange-bg)',kpi.docsPending,'Docs Incomplete')+
-    tile('&#128680;','var(--tag-red-bg)',   kpi.tatBreaches,'TAT Breaches')+
-    tile('&#127919;','var(--tag-gray-bg)',  fmt(kpi.tatTarget)+'d','TAT Target')+
+  var kpi     = data.kpi     || {};
+  var members = data.members || [];
+  var al      = data.alerts  || {};
+
+  // ── Programme Overview card ──────────────────────────────
+  var dist = kpi.dist || {};
+  var totalN = STATUS_SEGS.reduce(function(a,s){ return a+(dist[s.k]||0); }, 0) || 0;
+  var barSegs='', legItems='';
+  STATUS_SEGS.forEach(function(s) {
+    var n = dist[s.k]||0;
+    if (totalN>0 && n>0) barSegs += '<div class="db-roll-seg" style="width:'+(n/totalN*100)+'%;background:'+s.c+'" title="'+s.l+': '+n+'"></div>';
+    legItems += '<span class="db-roll-litem"><span class="db-roll-dot" style="background:'+s.c+'"></span>'+n+' '+s.l+'</span>';
+  });
+
+  var ovCard =
+    '<div class="db-overview">'+
+    '<div class="db-ov-inner">'+
+    '<div class="db-ov-left">'+
+    '<span class="db-ov-label">Programme Overview</span>'+
+    '<div class="db-roll-hd">'+
+    '<span class="db-roll-title">Rollout Status</span>'+
+    '<span class="db-roll-count">'+totalN+' Cases</span>'+
+    '</div>'+
+    '<div class="db-roll-bar">'+(barSegs||'<div class="db-roll-seg" style="width:100%;background:var(--hover)"></div>')+'</div>'+
+    '<div class="db-roll-legend">'+legItems+'</div>'+
+    '</div>'+
+    '<div class="db-ov-right">'+
+    '<div class="db-kpi-row"><span class="db-kpi-lbl">TAT Breaches</span><span class="db-kpi-num" style="color:var(--crit)">'+fmt(al.breach||0)+'</span></div>'+
+    '<div class="db-kpi-row"><span class="db-kpi-lbl">Monitoring Open</span><span class="db-kpi-num" style="color:var(--accent)">'+fmt(al.monitoringOpen||0)+'</span></div>'+
+    '<div class="db-kpi-row"><span class="db-kpi-lbl">Overdue Tasks</span><span class="db-kpi-num" style="color:var(--warn)">'+fmt(al.overdue||0)+'</span></div>'+
+    '</div>'+
+    '</div>'+
     '</div>';
 
-  // Rollout: part-to-whole stacked bar of exclusive case statuses
-  var rollH='';
-  if (kpi.dist) {
-    var totalN=STATUS_SEGS.reduce(function(a,s){return a+(kpi.dist[s.k]||0);},0);
-    var barH='',legH='';
-    STATUS_SEGS.forEach(function(s){
-      var n=kpi.dist[s.k]||0;
-      if(totalN>0&&n>0) barH+='<div class="roll-seg" style="width:'+(n/totalN*100)+'%;background:'+s.c+'" title="'+s.l+': '+n+'"></div>';
-      legH+='<span><span class="lg-dot" style="background:'+s.c+'"></span>'+n+' '+s.l+'</span>';
-    });
-    rollH=sec('&#128640; ROLLOUT STATUS <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink-3);margin-left:6px;">'+totalN+' cases</span>',
-      '<div class="chart-card"><div class="roll-bar">'+barH+'</div><div class="legend">'+legH+'</div></div>',false);
-  }
+  // ── Team Overview card ───────────────────────────────────
+  var ROLE_MAP = { Harshita:'Executive', Vamsi:'Sr. Executive', Naveen:'Executive', Vishwash:'Mgmt. Trainee' };
+  var maxTot = 1;
+  members.forEach(function(m){ if ((m.totalCases||0)>maxTot) maxTot=m.totalCases; });
 
-  // Cases by member — proportional stacked bars (Closed vs Open)
-  var members=data.members||[];
-  var maxTot=1;
-  members.forEach(function(m){ if((m.totalCases||0)>maxTot) maxTot=m.totalCases; });
-  var hbH='';
-  members.forEach(function(m){
-    var done=m.completed||0, open=Math.max(0,(m.totalCases||0)-done);
-    var w=(m.totalCases||0)/maxTot*100;
-    var segsH='';
-    if(done) segsH+='<div class="hb-seg" style="flex:'+done+';background:#049769" title="Closed: '+done+'"></div>';
-    if(open) segsH+='<div class="hb-seg" style="flex:'+open+';background:#005DFF" title="Open: '+open+'"></div>';
-    if(!done&&!open) segsH='<div class="hb-seg" style="flex:1;background:var(--hover)"></div>';
-    hbH+='<div class="hb-row"><span class="hb-name">'+esc(m.name)+'</span><div class="hb-outer"><div class="hb-track" style="width:'+Math.max(w,4)+'%">'+segsH+'</div></div><span class="hb-tot">'+(m.totalCases||0)+'</span></div>';
-  });
-  var memberChartH='<div class="chart-card">'+hbH+
-    '<div class="legend"><span><span class="lg-dot" style="background:#049769"></span>Closed</span><span><span class="lg-dot" style="background:#005DFF"></span>Open</span></div></div>';
+  var memRows = members.map(function(m) {
+    var done   = m.completed||0;
+    var active = m.inProgress||0;
+    var total  = m.totalCases||0;
+    var wPct   = total ? Math.max(total/maxTot*100, 8) : 8;
+    var segsH  = '';
+    if (done)   segsH += '<div class="db-mem-seg" style="flex:'+done+';background:#049769" title="Completed: '+done+'"></div>';
+    if (active) segsH += '<div class="db-mem-seg" style="flex:'+active+';background:#005DFF" title="In Progress / Pending: '+active+'"></div>';
+    if (!segsH) segsH  = '<div class="db-mem-seg" style="flex:1;background:var(--hover)"></div>';
+    var c = MEMBER_CLR[m.name]||'#9b9a97';
+    return '<div class="db-mem-row" onclick="goWorkspace(\''+esc(m.name)+'\')" title="Open workspace">'+
+      '<div class="db-mem-name"><span class="av-dot" style="background:'+c+'"></span>'+esc(m.name)+'</div>'+
+      '<span class="db-mem-role">'+esc(ROLE_MAP[m.name]||'')+'</span>'+
+      '<div class="db-mem-bar" style="width:'+wPct+'%">'+segsH+'</div>'+
+      '<div class="db-mem-stats">'+
+      '<span class="db-mem-stat">'+total+' cases</span>'+
+      '<span class="db-mem-stat" style="color:#049769">'+done+' done</span>'+
+      '<span class="db-mem-stat" style="color:#005DFF">'+active+' active</span>'+
+      (m.tatBreaches ? '<span class="db-mem-stat" style="color:var(--crit)">'+m.tatBreaches+' breach</span>' : '')+
+      '</div>'+
+      '<button class="btn-edit" style="flex-shrink:0" onclick="event.stopPropagation();goWorkspace(\''+esc(m.name)+'\')">Open ›</button>'+
+      '</div>';
+  }).join('');
 
-  // Team performance table
-  var tot={totalCases:0,completed:0,inProgress:0,docsPending:0,tatBreaches:0,monitoringOpen:0,thirdPartyOpen:0,otherTasks:0};
-  var mRows='';
-  members.forEach(function(m){
-    Object.keys(tot).forEach(function(k){tot[k]+=(m[k]||0);});
-    mRows+='<tr class="click-row" onclick="goWorkspace(\''+esc(m.name)+'\')"><td>'+avatar(m.name)+'</td><td>'+fmt(m.totalCases)+'</td><td>'+fmt(m.completed)+'</td><td>'+fmt(m.inProgress)+'</td><td>'+fmt(m.docsPending)+'</td><td>'+fmt(m.tatBreaches)+'</td><td>'+fmt(m.monitoringOpen)+'</td><td>'+fmt(m.thirdPartyOpen)+'</td><td>'+fmt(m.otherTasks)+'</td></tr>';
-  });
-  mRows+='<tr class="total-row"><td>TEAM TOTAL</td><td>'+tot.totalCases+'</td><td>'+tot.completed+'</td><td>'+tot.inProgress+'</td><td>'+tot.docsPending+'</td><td>'+tot.tatBreaches+'</td><td>'+tot.monitoringOpen+'</td><td>'+tot.thirdPartyOpen+'</td><td>'+tot.otherTasks+'</td></tr>';
+  var teamCard =
+    '<div class="db-team-card">'+
+    '<div class="db-team-hd">'+
+    '<span class="db-team-title">Team Overview</span>'+
+    '<span class="db-team-sub">'+
+    '<span class="db-roll-dot" style="background:#049769;display:inline-block;margin-right:3px;"></span>Completed &nbsp;'+
+    '<span class="db-roll-dot" style="background:#005DFF;display:inline-block;margin-right:3px;"></span>In Progress / Pending &nbsp;&nbsp;'+
+    'Click row to open workspace'+
+    '</span>'+
+    '</div>'+
+    memRows+
+    '</div>';
 
-  // Pipeline cards
-  var pipe=data.pipeline||[];
-  var pipeH='<div class="pipe-grid">';
-  pipe.forEach(function(p){
-    var other=Math.max(0,(p.total||0)-((p.inProgress||0)+(p.completed||0)+(p.rejected||0)));
-    var mini='';
+  // ── Pipeline by vertical ─────────────────────────────────
+  var pipe = data.pipeline||[];
+  var pipeH = '<div class="pipe-grid">';
+  pipe.forEach(function(p) {
+    var other = Math.max(0,(p.total||0)-((p.inProgress||0)+(p.completed||0)+(p.rejected||0)));
+    var mini  = '';
     [[p.completed,'#049769','Completed'],[p.inProgress,'#005DFF','In Progress'],[other,'#c3c2b7','Other'],[p.rejected,'#898781','Rejected']].forEach(function(s){
-      if(s[0]>0) mini+='<div class="hb-seg" style="flex:'+s[0]+';background:'+s[1]+'" title="'+s[2]+': '+s[0]+'"></div>';
+      if (s[0]>0) mini+='<div class="hb-seg" style="flex:'+s[0]+';background:'+s[1]+'" title="'+s[2]+': '+s[0]+'"></div>';
     });
-    if(!p.total) mini='<div class="hb-seg" style="flex:1;background:var(--hover)"></div>';
-    pipeH+='<div class="pipe-card">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;"><span style="font-size:12px;font-weight:700;color:var(--ink);">'+esc(p.name)+'</span>'+avatar(p.owner)+'</div>'+
-      '<div style="font-size:24px;font-weight:700;color:var(--ink);margin:9px 0 7px;letter-spacing:-.5px;">'+(p.total||0)+'<span style="font-size:10px;color:var(--ink-3);font-weight:600;letter-spacing:0;"> cases</span></div>'+
+    if (!p.total) mini='<div class="hb-seg" style="flex:1;background:var(--hover)"></div>';
+    pipeH+=
+      '<div class="pipe-card">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">'+
+      '<span style="font-size:12px;font-weight:700;color:var(--ink)">'+esc(p.name)+'</span>'+
+      avatar(p.owner)+'</div>'+
+      '<div style="font-size:26px;font-weight:700;color:var(--ink);margin:9px 0 7px;letter-spacing:-.5px;">'+
+      (p.total||0)+'<span style="font-size:10px;color:var(--ink-3);font-weight:600;letter-spacing:0"> cases</span></div>'+
       '<div class="hb-track" style="height:8px;">'+mini+'</div>'+
       '<div style="display:flex;gap:12px;margin-top:9px;font-size:10px;color:var(--ink-2);font-weight:600;">'+
       '<span><span class="lg-dot" style="background:#049769"></span>'+(p.completed||0)+' done</span>'+
       '<span><span class="lg-dot" style="background:#005DFF"></span>'+(p.inProgress||0)+' active</span>'+
-      '<span><span class="lg-dot" style="background:#898781"></span>'+(p.rejected||0)+' rejected</span></div>'+
-      '</div>';
+      '<span><span class="lg-dot" style="background:#898781"></span>'+(p.rejected||0)+' rejected</span>'+
+      '</div></div>';
   });
   pipeH+='</div>';
 
-  // Alerts
-  var al=data.alerts||{};
-  var aRows=[
+  // ── Alerts ───────────────────────────────────────────────
+  var aRows = [
     {bg:'var(--tag-red-bg)',   fg:'var(--tag-red-ink)',   icon:'&#128680;',lbl:'TAT Breaches',    n:al.breach},
     {bg:'var(--tag-orange-bg)',fg:'var(--tag-orange-ink)',icon:'&#128196;',lbl:'Docs Incomplete', n:al.docs},
     {bg:'var(--tag-blue-bg)',  fg:'var(--tag-blue-ink)',  icon:'&#129309;',lbl:'Third Party Open',n:al.tpOpen},
     {bg:'var(--tag-red-bg)',   fg:'var(--tag-red-ink)',   icon:'&#9200;',  lbl:'Overdue Tasks',   n:al.overdue},
     {bg:'var(--tag-purple-bg)',fg:'var(--tag-purple-ink)',icon:'&#128065;',lbl:'Monitoring Open', n:al.monitoringOpen}
   ];
-  var alH='<div class="alerts-grid">';
-  aRows.forEach(function(r){alH+='<div class="alert-row" style="background:'+r.bg+';color:'+r.fg+'"><span style="font-size:15px;">'+r.icon+'</span><span class="alert-count">'+fmt(r.n)+'</span><span>'+r.lbl+'</span></div>';});
+  var alH = '<div class="alerts-grid">';
+  aRows.forEach(function(r){
+    alH+='<div class="alert-row" style="background:'+r.bg+';color:'+r.fg+'">'+
+      '<span style="font-size:15px">'+r.icon+'</span>'+
+      '<span class="alert-count">'+fmt(r.n)+'</span>'+
+      '<span>'+r.lbl+'</span>'+
+      '</div>';
+  });
   alH+='</div>';
 
   setMain(
     viewTools()+
     '<div class="page-title">&#128202; Dashboard</div>'+
-    tilesH+
-    rollH+
-    sec('&#128101; CASES BY MEMBER',memberChartH,false)+
-    sec('TEAM PERFORMANCE <span style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--ink-3);margin-left:6px;">click a row to open their workspace</span>',
-      tw('<thead><tr><th>Member</th><th>Total</th><th>Done</th><th>In Progress</th><th>Docs Pending</th><th>TAT Breaches</th><th>Monitoring Open</th><th>3P Open</th><th>Tasks</th></tr></thead><tbody>'+mRows+'</tbody>'))+
-    sec('PIPELINE BY VERTICAL',pipeH,false)+
-    sec('&#128680; ALERTS',alH,false)+
+    ovCard+
+    teamCard+
+    sec('PIPELINE BY VERTICAL', pipeH, false)+
+    sec('&#128680; ALERTS', alH, false)+
     '<div class="footer">Live view &bull; Auto-refresh 60 s &bull; Manager: Ajay &bull; Team: Harshita &middot; Vamsi &middot; Naveen &middot; Vishwash</div>'
   );
 }
